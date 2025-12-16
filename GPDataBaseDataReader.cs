@@ -1,0 +1,160 @@
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
+
+namespace SalesforceDynamicsGPIntegration
+{
+    public class GPDataBaseDataReader
+    {
+        private string connectionString { get; set; }
+        private SyncDataSettings syncDataSettings { get; set; }
+        private Logger Logger { get; set; }
+
+        public GPDataBaseDataReader(IConfigurationRoot configurationBuilder, SyncDataSettings syncDataSettings,Logger logger)
+        {
+            this.connectionString = configurationBuilder.GetConnectionString("DynamicsGP");
+            this.syncDataSettings = syncDataSettings;
+            this.Logger = logger;
+            Logger.LogInfo("Filters:"+ JsonSerializer.Serialize(syncDataSettings));
+        }
+        public List<GpDataSyncRequest> GetData(int pageNumber)
+        {
+            List<GpDataSyncRequest> gpDataSyncRequests = new List<GpDataSyncRequest>();
+            string query = @"
+                    SELECT  
+                        H.DOCDATE  as   DocumentDate,
+                        H.SLPRSNID as   SalesPersonID,
+                        H.SOPNUMBE as   SOPNumber, 
+                        H.SOPTYPE  as   SOPType,
+                        L.CMPNTSEQ as   ComponentSequence,
+                        L.LNITMSEQ as   LineItemSequence,
+                        H.CUSTNMBR as   CustomerNumber,
+                        L.ITEMNMBR as   ItemNumber,
+                        L.QUANTITY as   Qty,
+                        L.QUANTITY * L.UNITPRCE as  Amount,
+                        I.ITMCLSCD        as ItemClassCode             
+                    FROM [PD].[dbo].[SOP30200] H
+                        INNER JOIN SOP30300 L
+                            ON H.SOPTYPE = L.SOPTYPE
+                            AND H.SOPNUMBE = L.SOPNUMBE
+                        INNER JOIN IV00101 I
+                            ON L.ITEMNMBR = I.ITEMNMBR
+                     WHERE 
+                        H.SLPRSNID IS NOT NULL AND 
+                        H.SLPRSNID!='' AND  
+                        H.SOPTYPE  IN (3,4) AND 
+                        [VOIDSTTS]= 0 AND 
+                        ORIGTYPE= 2 AND 
+                        L.ITMTSHID ='AVATAX-CANADA'";
+
+            // Add conditional SLPRSNID filter
+            string filters = syncDataSettings.GetFilters();
+            query += filters;
+            query += " ORDER BY H.DOCDATE, H.SLPRSNID ASC OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+
+                    command.Parameters.AddRange(syncDataSettings.GetParameters());
+                    command.Parameters.Add(new SqlParameter("@Offset", SqlDbType.Int) { Value = (pageNumber - 1) * this.syncDataSettings.BatchSize });
+                    command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = this.syncDataSettings.BatchSize });
+                    try
+                    {
+
+                        connection.Open();
+                        Console.WriteLine("Connected to SQL Server successfully.\n");
+                        using (SqlDataReader reader = command.ExecuteReader())
+                        {
+
+                            while (reader.Read())
+                            {
+                                GpDataSyncRequest gpDataSyncRequest = new GpDataSyncRequest
+                                {
+                                    salesRepId = reader["SalesPersonID"].ToString(),
+                                    productCode = reader["ItemNumber"].ToString(),
+                                    accountNumber = reader["CustomerNumber"].ToString(),
+                                    salesDate = ((DateTime)reader["DocumentDate"]).Ticks,
+                                    quantity = Convert.ToDecimal(reader["Qty"]),
+                                    amount = Convert.ToDecimal(reader["Amount"]),
+                                    invoiceNumber = reader["SOPNumber"].ToString(),
+                                    sopType = Convert.ToInt32(reader["SOPType"]),
+                                    lineItemSequence = Convert.ToInt64(reader["LineItemSequence"]),
+                                    componentSequence = Convert.ToInt64(reader["ComponentSequence"])
+                                };
+                                gpDataSyncRequests.Add(gpDataSyncRequest);
+                            }
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error: " + ex.Message);
+                        Logger.LogError("Exception while reading data from GP database", ex);
+                    }
+                    return gpDataSyncRequests;
+                }
+            }
+        }
+        public int GetTotalPages()
+        {
+            int count = 0;
+            string query = @"
+                    SELECT  
+                        COUNT(*) 
+                    FROM [PD].[dbo].[SOP30200] H
+                        INNER JOIN SOP30300 L
+                            ON H.SOPTYPE = L.SOPTYPE
+                            AND H.SOPNUMBE = L.SOPNUMBE
+                        INNER JOIN IV00101 I
+                            ON L.ITEMNMBR = I.ITEMNMBR
+                     WHERE 
+                        H.SLPRSNID IS NOT NULL AND 
+                        H.SLPRSNID!='' AND  
+                        H.SOPTYPE  IN (3,4) AND 
+                        [VOIDSTTS]= 0 AND 
+                        ORIGTYPE= 2 AND 
+                        L.ITMTSHID ='AVATAX-CANADA'";
+
+            // Add conditional SLPRSNID filter
+            string filters = syncDataSettings.GetFilters();
+            query += filters;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    // Add parameters to the query
+                    command.Parameters.AddRange(syncDataSettings.GetParameters());
+                    try
+                    {
+
+                        connection.Open();
+                        // ExecuteScalar retrieves the single value and returns it as an object
+                        object result = command.ExecuteScalar();
+
+                        // Check if the result is not null before converting
+                        if (result != null)
+                        {
+                            count = Convert.ToInt32(result);
+                        }
+
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle exceptions appropriately (log or throw)
+                        Console.WriteLine("Error: " + ex.Message);
+                        Logger.LogError("Exception while counting records from GP database", ex);
+                    }
+                }
+            }
+            return (int)Math.Ceiling((double)count / syncDataSettings.BatchSize);
+        }
+    }
+}
