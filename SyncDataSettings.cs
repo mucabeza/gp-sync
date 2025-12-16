@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -12,18 +13,27 @@ namespace SalesforceDynamicsGPIntegration
 
     {
         private static string ALL_VALUES = "ALL";
-        public int BatchSize { get;  set; }
-        public DateTime StartDate { get;  set; } = DateTime.Now;
 
-        public DateTime EndDate { get;  set; } = DateTime.Now;
+        [JsonPropertyName("batchSize")]
+        public int BatchSize { get; set; }
 
-        public string SalesPersonId { get;  set; } = ALL_VALUES;
+        [JsonPropertyName("startDate")]
+        public DateTime StartDate { get; set; } = DateTime.Now;
 
+        [JsonPropertyName("endDate")]
+        public DateTime EndDate { get; set; } = DateTime.Now;
+
+        [JsonPropertyName("salesPersonId")]
+        public string SalesPersonId { get; set; } = ALL_VALUES;
+
+        [JsonPropertyName("itemClassType")]
         public string ItemClassType { get; set; } = "NP";
 
+        [JsonPropertyName("customerNumber")]
         public string CustomerNumber { get; set; } = ALL_VALUES;
 
-        public string ProductNumber { get; set; } = ALL_VALUES;
+        [JsonPropertyName("productNumber")] 
+        public string ProductNumber { get; set;} = ALL_VALUES;
         public SyncDataSettings(IConfigurationRoot configurationBuilder)
         {
             var syncSettings = configurationBuilder.GetSection("SyncDataSettings");
@@ -35,7 +45,8 @@ namespace SalesforceDynamicsGPIntegration
             CustomerNumber = syncSettings["CustomerNumber"] ?? ALL_VALUES;
             ProductNumber = syncSettings["ProductNumber"] ?? ALL_VALUES;
         }
-        public SyncDataSettings() { 
+        public SyncDataSettings()
+        {
             BatchSize = 200;
             StartDate = DateTime.Now;
             EndDate = DateTime.Now;
@@ -72,7 +83,7 @@ namespace SalesforceDynamicsGPIntegration
         {
             var parameters = new List<SqlParameter>{
                 new SqlParameter("@StartDate", SqlDbType.DateTime) { Value = this.StartDate },
-                new SqlParameter("@EndDate", SqlDbType.DateTime) { Value = this.EndDate }       
+                new SqlParameter("@EndDate", SqlDbType.DateTime) { Value = this.EndDate }
             };
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {

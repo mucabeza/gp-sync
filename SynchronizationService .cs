@@ -74,15 +74,19 @@ namespace SalesforceDynamicsGPIntegration
                                     var response = await SalesforceService.SyncGpDataAsync(gpDataSyncRequests);
                                     if (response.Status)
                                     {
-                                        Logger.LogInfo($"Successfully synced page {page} to Salesforce");
-                                        Logger.LogInfo($"Successfully synced  {gpDataSyncRequests.Count} records to Salesforce");
-                                        Console.WriteLine($"Successfully synced page {page} to Salesforce.\n");
+                                        Logger.LogInfo($"Successfully sent to Salesforce Page Number: {page}");
+                                        Logger.LogInfo(response.Message);
+
                                     }
                                     else
                                     {
                                         Logger.LogError($"Failed to sync page {page} to Salesforce. Message: {response.Message}");
                                         Console.WriteLine($"Failed to sync page {page} to Salesforce. Message: {response.Message}\n");
                                     }
+                                    response.Errors.ForEach(x =>
+                                    {
+                                        Logger.LogError($"Salesforce Sync Error: {x.Message} for Invoice: {x.InvoiceNumber} SOP Type: {x.SopType} Line Item Sequence: {x.LineItemSequence} Component Sequence: {x.ComponentSequence}");
+                                    });
                                 }
                                 catch (Exception ex)
                                 {
