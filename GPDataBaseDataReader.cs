@@ -165,7 +165,7 @@ namespace SalesforceDynamicsGPIntegration
             string query = @"
                     SELECT  
                         COUNT(*) 
-                    FROM [PD].[dbo].[SOP30300] L
+                     FROM [PD].[dbo].[SOP30300] L
                         LEFT JOIN [PD].[dbo].[SOP30200] H
                             ON H.SOPTYPE = L.SOPTYPE
                             AND H.SOPNUMBE = L.SOPNUMBE
@@ -205,6 +205,7 @@ namespace SalesforceDynamicsGPIntegration
                             END!='' AND  
                         H.SOPTYPE  IN (3,4) AND 
                         [VOIDSTTS]= 0 
+                        AND L.QUANTITY <> 0
                         AND (
                                 (
                                     ((SELECT linked FROM CSUSRep WHERE CS_User = @userid) = 0)
@@ -248,6 +249,7 @@ namespace SalesforceDynamicsGPIntegration
                         if (result != null)
                         {
                             count = Convert.ToInt32(result);
+                             Logger.LogInfo($"Total Items to process: {count}");
                         }
 
                     }
