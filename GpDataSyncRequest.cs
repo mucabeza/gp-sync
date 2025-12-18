@@ -29,5 +29,7 @@ namespace SalesforceDynamicsGPIntegration
 
         public long componentSequence { get; set; }   =0;
 
+        public string productClassCode { get; set; }
+
     }
 }

@@ -34,6 +34,9 @@ namespace SalesforceDynamicsGPIntegration
 
         [JsonPropertyName("productNumber")] 
         public string ProductNumber { get; set;} = ALL_VALUES;
+
+        [JsonPropertyName("user")] 
+        public string User { get; set;} = String.Empty;
         public SyncDataSettings(IConfigurationRoot configurationBuilder)
         {
             var syncSettings = configurationBuilder.GetSection("SyncDataSettings");
@@ -44,6 +47,7 @@ namespace SalesforceDynamicsGPIntegration
             SalesPersonId = syncSettings["SalesPersonID"] ?? ALL_VALUES;
             CustomerNumber = syncSettings["CustomerNumber"] ?? ALL_VALUES;
             ProductNumber = syncSettings["ProductNumber"] ?? ALL_VALUES;
+            User = syncSettings["User"] ?? String.Empty;
         }
         public SyncDataSettings()
         {
@@ -57,15 +61,14 @@ namespace SalesforceDynamicsGPIntegration
         }
         public string GetFilters()
         {
-            string filters = " AND [DOCDATE]>= @StartDate AND " +
-                        "[DOCDATE]< @EndDate";
+            string filters = " ";
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {
-                filters += " AND I.ITMCLSCD LIKE  @ItemClassType";
+                filters += " AND LEFT(I.ITMCLSCD, 2) =  @ItemClassType";
             }
             if (!string.IsNullOrEmpty(this.SalesPersonId) && this.SalesPersonId.ToUpper() != ALL_VALUES)
             {
-                filters += " AND H.SLPRSNID = @SalesPersonId";
+                filters += " AND CASE ISNULL(SH. CS_Shipto, 1) WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')  END = @SalesPersonId";
             }
             if (!string.IsNullOrEmpty(this.CustomerNumber) && this.CustomerNumber.ToUpper() != ALL_VALUES)
             {
@@ -81,13 +84,15 @@ namespace SalesforceDynamicsGPIntegration
         }
         public SqlParameter[] GetParameters()
         {
+            //@userid
             var parameters = new List<SqlParameter>{
                 new SqlParameter("@StartDate", SqlDbType.DateTime) { Value = this.StartDate },
-                new SqlParameter("@EndDate", SqlDbType.DateTime) { Value = this.EndDate }
+                new SqlParameter("@EndDate", SqlDbType.DateTime) { Value = this.EndDate },
+                new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = this.User }
             };
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {
-                parameters.Add(new SqlParameter("@ItemClassType", SqlDbType.VarChar, 50) { Value = this.ItemClassType + "%" });
+                parameters.Add(new SqlParameter("@ItemClassType", SqlDbType.VarChar, 50) { Value = this.ItemClassType});
             }
             if (!string.IsNullOrEmpty(this.SalesPersonId) && this.SalesPersonId.ToUpper() != ALL_VALUES)
             {
