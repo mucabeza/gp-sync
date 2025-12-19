@@ -14,6 +14,8 @@ namespace SalesforceDynamicsGPIntegration
 
         private Logger Logger { get; set; } // Add logger
 
+        private bool IsConnectedToSalesforce = false;
+
         public SynchronizationService(IConfigurationRoot configurationBuilder, Logger logger)
         {
             ConfigurationBuilder = configurationBuilder;
@@ -25,6 +27,11 @@ namespace SalesforceDynamicsGPIntegration
         public async Task<bool> ConnectWithSalesforce()
         {
             Logger.LogInfo("Attempting to connect to Salesforce...");
+            if (IsConnectedToSalesforce)
+            {
+                Logger.LogInfo("Already connected to Salesforce.");
+                return true;
+            }
             try
             {
                 AuthenticationResult authenticated = await this.SalesforceService.AuthenticateAsync();
@@ -36,6 +43,7 @@ namespace SalesforceDynamicsGPIntegration
                 }
                 Console.WriteLine("Salesforce Authentication Succeeded.");
                 Logger.LogInfo("Salesforce Authentication Succeeded.");
+                IsConnectedToSalesforce = authenticated.IsSuccess;
                 return authenticated.IsSuccess;
             }
             catch (Exception ex)
@@ -55,7 +63,7 @@ namespace SalesforceDynamicsGPIntegration
                 {
                     try
                     {
-                        List<SyncDataSettings> syncDataSettingsList = GetSyncDataSettings();
+                        List<SyncDataSettings> syncDataSettingsList = await GetSyncDataSettings();
                         Logger.LogInfo($"Found {syncDataSettingsList.Count} sync data settings");
                         foreach (var syncDataSettings in syncDataSettingsList)
                         {
@@ -71,7 +79,13 @@ namespace SalesforceDynamicsGPIntegration
                                     Logger.LogInfo($"Processing page {page} of {pages}");
                                     Console.WriteLine($"Reading page {page} of {pages}...");
                                     var gpDataSyncRequests = dataReader.GetData(page);
-                                    var response = await SalesforceService.SyncGpDataAsync(gpDataSyncRequests);
+                                    GPRequestSync gPRequestSync = new GPRequestSync
+                                    {
+                                        gpData = gpDataSyncRequests,
+                                        isLastOne = page == pages,
+                                        filterRecordId = syncDataSettings.RecordId
+                                    };
+                                    var response = await SalesforceService.SyncGpDataAsync(gPRequestSync);
                                     if (response.Status)
                                     {
                                         Logger.LogInfo($"Successfully sent to Salesforce Page Number: {page}");
@@ -120,11 +134,10 @@ namespace SalesforceDynamicsGPIntegration
             }
         }
 
-        private List<SyncDataSettings> GetSyncDataSettings()
+        private async Task<List<SyncDataSettings>> GetSyncDataSettings()
         {
-            // For now, In the future we can call to salesfroce to get settings
-            return new List<SyncDataSettings>
-            {
+            var filters =  await SalesforceService.GetActiveSettingsAsync();
+            return filters.Count > 0 ? filters :      new List<SyncDataSettings>      {
                 new SyncDataSettings(ConfigurationBuilder)
             };
         }

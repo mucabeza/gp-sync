@@ -155,7 +155,7 @@ namespace SalesforceDynamicsGPIntegration
 
         }
 
-        public async Task<ResponseWrapper> SyncGpDataAsync(List<GpDataSyncRequest> salesLineItems)
+        public async Task<ResponseWrapper> SyncGpDataAsync(GPRequestSync gPRequestSync)
         {
             ResponseWrapper responseWrapper = new ResponseWrapper();
 
@@ -171,7 +171,7 @@ namespace SalesforceDynamicsGPIntegration
 
                 var request = new HttpRequestMessage(HttpMethod.Post, endpoint);
                 request.Headers.Add("Authorization", $"Bearer {_accessToken}");
-                String json = JsonSerializer.Serialize(salesLineItems);
+                String json = JsonSerializer.Serialize(gPRequestSync);
                 request.Content = new StringContent(
                     json,
                     Encoding.UTF8,
@@ -202,6 +202,45 @@ namespace SalesforceDynamicsGPIntegration
             }
 
             return responseWrapper;
+        }
+
+        public async Task<List<SyncDataSettings>> GetActiveSettingsAsync()
+        {
+            List<SyncDataSettings> activeFilters = new List<SyncDataSettings>();
+
+            if (!_isAuthenticated)
+            {
+                throw new InvalidOperationException("Not authenticated. Call AuthenticateAsync first.");
+            }
+
+            try
+            {
+                // Call custom REST endpoint /services/apexrest/gp-data-sync
+                string endpoint = $"{_instanceUrl}/services/apexrest/{_syncEndPointName}";
+                var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+                request.Headers.Add("Authorization", $"Bearer {_accessToken}");
+                var response = await _httpClient.SendAsync(request);
+                var responseContent = await response.Content.ReadAsStringAsync();
+                this.Logger.LogInfo($"Salesforce response: {responseContent}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    this.Logger.LogInfo($"Successfully synced record to Salesforce");
+                    activeFilters = JsonSerializer.Deserialize<List<SyncDataSettings>>(responseContent);
+                }
+                else
+                {
+                    this.Logger.LogError($"Failed to sync record. Status: {response.StatusCode}, Response: {responseContent}");
+                    activeFilters = new List<SyncDataSettings>();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error syncing GP data: {ex.Message}");
+                activeFilters = new List<SyncDataSettings>();
+            }
+
+            return activeFilters;
         }
     }
 

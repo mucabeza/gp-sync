@@ -10,7 +10,9 @@ namespace SalesforceDynamicsGPIntegration
         private static string DEBUG_LEVEL = "DEBUG";
          private static string INFO_LEVEL = "INFO";
         private readonly string _logFilePath;
+        private readonly string _logDirectory;
         private readonly object _lock = new object();
+        private readonly int _retentionDays;
 
         private string loggerLevel = DEBUG_LEVEL; // Default log level
 
@@ -18,14 +20,23 @@ namespace SalesforceDynamicsGPIntegration
         {
             loggerLevel = configurationBuilder["Logger:Level"] ?? DEBUG_LEVEL;
             string logFileName = configurationBuilder["Logger:LogFileName"] ?? "sync-log.txt";
+            
+            // Parse retention days from config (default to 7 days if not specified)
+            if (!int.TryParse(configurationBuilder["Logger:RetentionDays"], out _retentionDays))
+            {
+                _retentionDays = 7;
+            }
 
             // Create logs directory in the application folder
-            string logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
-            Directory.CreateDirectory(logDirectory);
+            _logDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "logs");
+            Directory.CreateDirectory(_logDirectory);
 
             // Create log file with timestamp
             string fileName = $"{DateTime.Now:yyyy-MM-dd}_{logFileName}";
-            _logFilePath = Path.Combine(logDirectory, fileName);
+            _logFilePath = Path.Combine(_logDirectory, fileName);
+            
+            // Clean up old log files on initialization
+            CleanupOldLogFiles();
         }
 
         public void LogError(string message, Exception ex = null)
@@ -86,6 +97,52 @@ namespace SalesforceDynamicsGPIntegration
         public async Task WriteLogAsync(string level, string message, Exception ex = null)
         {
             await Task.Run(() => WriteLog(level, message, ex));
+        }
+
+        /// <summary>
+        /// Deletes log files older than the specified retention period
+        /// </summary>
+        public void CleanupOldLogFiles()
+        {
+            try
+            {
+                if (!Directory.Exists(_logDirectory))
+                    return;
+
+                var cutoffDate = DateTime.Now.AddDays(-_retentionDays);
+                var logFiles = Directory.GetFiles(_logDirectory, "*.txt");
+
+                foreach (var logFile in logFiles)
+                {
+                    var fileInfo = new FileInfo(logFile);
+                    
+                    // Delete files older than retention period
+                    if (fileInfo.CreationTime < cutoffDate)
+                    {
+                        try
+                        {
+                            File.Delete(logFile);
+                            Console.WriteLine($"Deleted old log file: {Path.GetFileName(logFile)}");
+                        }
+                        catch (Exception deleteEx)
+                        {
+                            Console.WriteLine($"Failed to delete log file {Path.GetFileName(logFile)}: {deleteEx.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error during log cleanup: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Manually trigger cleanup of old log files
+        /// </summary>
+        public void ManualCleanup()
+        {
+            CleanupOldLogFiles();
         }
     }
 }

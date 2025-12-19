@@ -35,8 +35,11 @@ namespace SalesforceDynamicsGPIntegration
         [JsonPropertyName("productNumber")] 
         public string ProductNumber { get; set;} = ALL_VALUES;
 
-        [JsonPropertyName("user")] 
-        public string User { get; set;} = String.Empty;
+        [JsonPropertyName("userId")] 
+        public string UserId { get; set;} = String.Empty;
+
+        [JsonPropertyName("recordId")] 
+        public String RecordId { get; set;} = String.Empty;
         public SyncDataSettings(IConfigurationRoot configurationBuilder)
         {
             var syncSettings = configurationBuilder.GetSection("SyncDataSettings");
@@ -47,7 +50,7 @@ namespace SalesforceDynamicsGPIntegration
             SalesPersonId = syncSettings["SalesPersonID"] ?? ALL_VALUES;
             CustomerNumber = syncSettings["CustomerNumber"] ?? ALL_VALUES;
             ProductNumber = syncSettings["ProductNumber"] ?? ALL_VALUES;
-            User = syncSettings["User"] ?? String.Empty;
+            UserId = syncSettings["UserId"] ?? String.Empty;
         }
         public SyncDataSettings()
         {
@@ -88,7 +91,7 @@ namespace SalesforceDynamicsGPIntegration
             var parameters = new List<SqlParameter>{
                 new SqlParameter("@StartDate", SqlDbType.DateTime) { Value = this.StartDate },
                 new SqlParameter("@EndDate", SqlDbType.DateTime) { Value = this.EndDate },
-                new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = this.User }
+                new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = this.UserId }
             };
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {

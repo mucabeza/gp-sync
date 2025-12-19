@@ -22,9 +22,9 @@ namespace SalesforceDynamicsGPIntegration
             this.Logger = logger;
             Logger.LogInfo("Filters:" + JsonSerializer.Serialize(syncDataSettings));
         }
-        public List<GpDataSyncRequest> GetData(int pageNumber)
+        public List<GpDataSync> GetData(int pageNumber)
         {
-            List<GpDataSyncRequest> gpDataSyncRequests = new List<GpDataSyncRequest>();
+            List<GpDataSync> gpDataSyncRequests = new List<GpDataSync>();
             string query = @"
                     SELECT  
                         H.DOCDATE  as   DocumentDate,
@@ -130,7 +130,7 @@ namespace SalesforceDynamicsGPIntegration
 
                             while (reader.Read())
                             {
-                                GpDataSyncRequest gpDataSyncRequest = new GpDataSyncRequest
+                                GpDataSync gpDataSyncRequest = new GpDataSync
                                 {
                                     salesRepId = reader["SalesPersonID"].ToString(),
                                     productCode = reader["ItemNumber"].ToString(),

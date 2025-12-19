@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SalesforceDynamicsGPIntegration
 {
-    public class GpDataSyncRequest
+    public class GpDataSync
     {
 
         public string salesRepId { get; set; }
