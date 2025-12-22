@@ -65,50 +65,88 @@ namespace SalesforceDynamicsGPIntegration
                     {
                         List<SyncDataSettings> syncDataSettingsList = await GetSyncDataSettings();
                         Logger.LogInfo($"Found {syncDataSettingsList.Count} sync data settings");
-                        foreach (var syncDataSettings in syncDataSettingsList)
+                        if (syncDataSettingsList.Count > 0)
                         {
-
-                            GPDataBaseDataReader dataReader = new GPDataBaseDataReader(ConfigurationBuilder, syncDataSettings, Logger);
-                            int pages = dataReader.GetTotalPages();
-                            Logger.LogInfo($"Total pages to process: {pages}");
-                            Console.WriteLine("Record pages: " + pages + "\n");
-                            for (int page = 1; page <= pages; page++)
+                            foreach (var syncDataSettings in syncDataSettingsList)
                             {
-                                try
+
+                                GPDataBaseDataReader dataReader = new GPDataBaseDataReader(ConfigurationBuilder, syncDataSettings, Logger);
+                                int pages = dataReader.GetTotalPages();
+                                Logger.LogInfo($"Total pages to process: {pages}");
+                                Console.WriteLine("Record pages: " + pages + "\n");
+                                if (pages > 0)
                                 {
-                                    Logger.LogInfo($"Processing page {page} of {pages}");
-                                    Console.WriteLine($"Reading page {page} of {pages}...");
-                                    var gpDataSyncRequests = dataReader.GetData(page);
+                                    for (int page = 1; page <= pages; page++)
+                                    {
+                                        try
+                                        {
+                                            Logger.LogInfo($"Processing page {page} of {pages}");
+                                            Console.WriteLine($"Reading page {page} of {pages}...");
+                                            var gpDataSyncRequests = dataReader.GetData(page);
+                                            GPRequestSync gPRequestSync = new GPRequestSync
+                                            {
+                                                gpData = gpDataSyncRequests,
+                                                isLastOne = page == pages,
+                                                filterRecordId = syncDataSettings.RecordId
+                                            };
+                                            var response = await SalesforceService.SyncGpDataAsync(gPRequestSync);
+                                            if (response.Status)
+                                            {
+                                                Logger.LogInfo($"Successfully sent to Salesforce Page Number: {page}");
+                                                Logger.LogInfo(response.Message);
+
+                                            }
+                                            else
+                                            {
+                                                Logger.LogError($"Failed to sync page {page} to Salesforce. Message: {response.Message}");
+                                                Console.WriteLine($"Failed to sync page {page} to Salesforce. Message: {response.Message}\n");
+                                            }
+                                            response.Errors.ForEach(x =>
+                                            {
+                                                Logger.LogError($"Salesforce Sync Error: {x.Message} for Invoice: {x.InvoiceNumber} SOP Type: {x.SopType} Line Item Sequence: {x.LineItemSequence} Component Sequence: {x.ComponentSequence}");
+                                            });
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Logger.LogError($"Exception while syncing page {page} to Salesforce", ex);
+                                            Console.WriteLine($"Exception while syncing page {page} to Salesforce: {ex.Message}\n");
+                                        }
+
+                                    }
+                                }
+                                else
+                                {
                                     GPRequestSync gPRequestSync = new GPRequestSync
                                     {
-                                        gpData = gpDataSyncRequests,
-                                        isLastOne = page == pages,
+                                        gpData = new List<GpDataSync>(),
+                                        isLastOne = true,
                                         filterRecordId = syncDataSettings.RecordId
                                     };
                                     var response = await SalesforceService.SyncGpDataAsync(gPRequestSync);
                                     if (response.Status)
                                     {
-                                        Logger.LogInfo($"Successfully sent to Salesforce Page Number: {page}");
+                                        Logger.LogInfo($"Successfully sent to Salesforce Page Number: {0}");
                                         Logger.LogInfo(response.Message);
 
                                     }
                                     else
                                     {
-                                        Logger.LogError($"Failed to sync page {page} to Salesforce. Message: {response.Message}");
-                                        Console.WriteLine($"Failed to sync page {page} to Salesforce. Message: {response.Message}\n");
+                                        Logger.LogError($"Failed to sync page {0} to Salesforce. Message: {response.Message}");
+                                        Console.WriteLine($"Failed to sync page {0} to Salesforce. Message: {response.Message}\n");
                                     }
                                     response.Errors.ForEach(x =>
                                     {
                                         Logger.LogError($"Salesforce Sync Error: {x.Message} for Invoice: {x.InvoiceNumber} SOP Type: {x.SopType} Line Item Sequence: {x.LineItemSequence} Component Sequence: {x.ComponentSequence}");
                                     });
-                                }
-                                catch (Exception ex)
-                                {
-                                    Logger.LogError($"Exception while syncing page {page} to Salesforce", ex);
-                                    Console.WriteLine($"Exception while syncing page {page} to Salesforce: {ex.Message}\n");
-                                }
 
+                                }
                             }
+
+                        }
+                        else
+                        {
+                            Logger.LogInfo("No active sync data settings found.");
+                            Console.WriteLine("No active sync data settings found.");
                         }
                     }
                     catch (Exception settingsEx)
@@ -120,6 +158,7 @@ namespace SalesforceDynamicsGPIntegration
                 }
                 else
                 {
+                    Logger.LogError("Failed to authenticate with Salesforce. Exiting...");
                     Console.WriteLine("Failed to authenticate with Salesforce. Exiting...");
                 }
             }
@@ -133,13 +172,11 @@ namespace SalesforceDynamicsGPIntegration
                 Logger.LogInfo("Synchronization process completed");
             }
         }
+ 
 
         private async Task<List<SyncDataSettings>> GetSyncDataSettings()
         {
-            var filters =  await SalesforceService.GetActiveSettingsAsync();
-            return filters.Count > 0 ? filters :      new List<SyncDataSettings>      {
-                new SyncDataSettings(ConfigurationBuilder)
-            };
+            return await SalesforceService.GetActiveSettingsAsync();
         }
 
     }
