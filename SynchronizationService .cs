@@ -59,11 +59,16 @@ namespace SalesforceDynamicsGPIntegration
             Logger.LogInfo("Starting synchronization process...");
             try
             {
-                if (await ConnectWithSalesforce())
+                if (true) //await ConnectWithSalesforce()
                 {
                     try
                     {
-                        List<SyncDataSettings> syncDataSettingsList = await GetSyncDataSettings();
+                        //List<SyncDataSettings> syncDataSettingsList = await GetSyncDataSettings();
+                        List<SyncDataSettings> syncDataSettingsList = new List<SyncDataSettings>
+                        {
+                            new SyncDataSettings(ConfigurationBuilder)
+                            
+                        };
                         Logger.LogInfo($"Found {syncDataSettingsList.Count} sync data settings");
                         if (syncDataSettingsList.Count > 0)
                         {
@@ -89,22 +94,27 @@ namespace SalesforceDynamicsGPIntegration
                                                 isLastOne = page == pages,
                                                 filterRecordId = syncDataSettings.RecordId
                                             };
-                                            var response = await SalesforceService.SyncGpDataAsync(gPRequestSync);
-                                            if (response.Status)
+                                            foreach (var gpData in gPRequestSync.gpData)
                                             {
-                                                Logger.LogInfo($"Successfully sent to Salesforce Page Number: {page}");
-                                                Logger.LogInfo(response.Message);
+                                                Console.WriteLine($"Processing invoice {gpData.invoiceNumber} Account Name: {gpData.accountName}  SalesRepName {gpData.salesRepName} Product: {gpData.productName}");
+                                            }
 
-                                            }
-                                            else
-                                            {
-                                                Logger.LogError($"Failed to sync page {page} to Salesforce. Message: {response.Message}");
-                                                Console.WriteLine($"Failed to sync page {page} to Salesforce. Message: {response.Message}\n");
-                                            }
-                                            response.Errors.ForEach(x =>
-                                            {
-                                                Logger.LogError($"Salesforce Sync Error: {x.Message} for Invoice: {x.InvoiceNumber} SOP Type: {x.SopType} Line Item Sequence: {x.LineItemSequence} Component Sequence: {x.ComponentSequence}");
-                                            });
+                                            // var response = await SalesforceService.SyncGpDataAsync(gPRequestSync);
+                                            // if (response.Status)
+                                            // {
+                                            //     Logger.LogInfo($"Successfully sent to Salesforce Page Number: {page}");
+                                            //     Logger.LogInfo(response.Message);
+
+                                            // }
+                                            // else
+                                            // {
+                                            //     Logger.LogError($"Failed to sync page {page} to Salesforce. Message: {response.Message}");
+                                            //     Console.WriteLine($"Failed to sync page {page} to Salesforce. Message: {response.Message}\n");
+                                            // }
+                                            // response.Errors.ForEach(x =>
+                                            // {
+                                            //     Logger.LogError($"Salesforce Sync Error: {x.Message} for Invoice: {x.InvoiceNumber} SOP Type: {x.SopType} Line Item Sequence: {x.LineItemSequence} Component Sequence: {x.ComponentSequence}");
+                                            // });
                                         }
                                         catch (Exception ex)
                                         {

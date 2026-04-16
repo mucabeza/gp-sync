@@ -11,9 +11,14 @@ namespace SalesforceDynamicsGPIntegration
     {
 
         public string salesRepId { get; set; }
+        public string salesRepName { get; set; }
         public string productCode { get; set; }
+        public string productId { get; set; }
+        public string productName { get; set; }
 
         public string accountNumber { get; set; }
+
+        public string accountName { get; set; }
 
         public long salesDate { get; set; }
 
@@ -30,6 +35,12 @@ namespace SalesforceDynamicsGPIntegration
         public long componentSequence { get; set; }   =0;
 
         public string productClassCode { get; set; }
+        public string productFamily { get; set; }
+
+        public string billingCity { get; set; }
+        public string shippingCity { get; set; }
+        public string shippingState { get; set; }
+        public string shippingZipCode { get; set; }
 
     }
 }

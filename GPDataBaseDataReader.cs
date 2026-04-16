@@ -18,6 +18,7 @@ namespace SalesforceDynamicsGPIntegration
         public GPDataBaseDataReader(IConfigurationRoot configurationBuilder, SyncDataSettings syncDataSettings, Logger logger)
         {
             this.connectionString = configurationBuilder.GetConnectionString("DynamicsGP");
+            Console.WriteLine(connectionString);
             this.syncDataSettings = syncDataSettings;
             this.Logger = logger;
             Logger.LogInfo("Filters:" + JsonSerializer.Serialize(syncDataSettings));
@@ -33,15 +34,26 @@ namespace SalesforceDynamicsGPIntegration
                                 ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
                             END
                          as   SalesPersonID,
+                        LTRIM(RTRIM(SAL.SPRSNSLN))+', '+LTRIM(RTRIM(SAL.SLPRSNFN)) as SalesPerson,
                         H.SOPNUMBE as   SOPNumber, 
                         H.SOPTYPE  as   SOPType,
                         L.CMPNTSEQ as   ComponentSequence,
                         L.LNITMSEQ as   LineItemSequence,
                         H.CUSTNMBR as   CustomerNumber,
+                        RM1.CUSTNAME as CustomerName,
+	                    RM1.CITY  as BillingCity,
                         L.ITEMNMBR as   ItemNumber,
+                        L.ITEMDESC AS ItemDesc,
+	                    E.ITMCLSDC AS ItemFamily,
                         L.QUANTITY as   Qty,
                         L.QUANTITY * L.UNITPRCE as  Amount,
-                        I.ITMCLSCD        as ItemClassCode             
+                        I.ITMCLSCD        as ItemClassCode,
+                        H.STATE AS ShippingState,
+                        H.CITY as ShippingCity,
+                        H.ADDRESS1 as ShippingAddress,
+                        H.ZIPCODE as ShippingZipCode,
+                        H.COUNTRY  as ShippingCountry
+             
                     FROM [PD].[dbo].[SOP30300] L
                         LEFT JOIN [PD].[dbo].[SOP30200] H
                             ON H.SOPTYPE = L.SOPTYPE
@@ -50,7 +62,7 @@ namespace SalesforceDynamicsGPIntegration
                         LEFT JOIN [PD].[dbo].[RM00101] RM1
                             ON RM1.CUSTNMBR = H.CUSTNMBR
 
-                        LEFT JOIN [PD].[dbo].[CS_IV00101] I
+                        LEFT JOIN [PD].[dbo].[IV00101] I
                             ON L.ITEMNMBR = I.ITEMNMBR
 
                         LEFT JOIN [PD].[dbo].[IV40400] E
@@ -71,6 +83,12 @@ namespace SalesforceDynamicsGPIntegration
                             ON ST_CITY.STATE = H.STATE
                             AND ST_CITY.CITY = H.CITY
                             AND LTRIM(RTRIM(ST_CITY. CITY)) <> ''
+                        LEFT JOIN  [PD].[dbo].[RM00301] SAL 
+                        ON SAL.SLPRSNID = CASE ISNULL(SH.CS_Shipto, 1)
+                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
+                            ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                        END
+
                      WHERE 
                         CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
@@ -133,8 +151,13 @@ namespace SalesforceDynamicsGPIntegration
                                 GpDataSync gpDataSyncRequest = new GpDataSync
                                 {
                                     salesRepId = reader["SalesPersonID"].ToString(),
+                                    salesRepName = reader["SalesPerson"].ToString(),
                                     productCode = reader["ItemNumber"].ToString(),
+                                    productId = reader["ItemNumber"].ToString(),
+                                    productName = reader["ItemDesc"].ToString(),
+                                    productFamily = reader["ItemFamily"].ToString(),
                                     accountNumber = reader["CustomerNumber"].ToString(),
+                                    accountName = reader["CustomerName"].ToString(),
                                     salesDate = ((DateTime)reader["DocumentDate"]).Ticks,
                                     quantity = Convert.ToDecimal(reader["Qty"]),
                                     amount = Convert.ToDecimal(reader["Amount"]),
@@ -142,7 +165,12 @@ namespace SalesforceDynamicsGPIntegration
                                     sopType = Convert.ToInt32(reader["SOPType"]),
                                     lineItemSequence = Convert.ToInt64(reader["LineItemSequence"]),
                                     componentSequence = Convert.ToInt64(reader["ComponentSequence"]),
-                                    productClassCode = reader["ItemClassCode"].ToString()
+                                    productClassCode = reader["ItemClassCode"].ToString(),
+                                    billingCity = reader["BillingCity"].ToString(),
+                                    shippingCity = reader["ShippingCity"].ToString(),
+                                    shippingState = reader["ShippingState"].ToString(),
+                                    shippingZipCode = reader["ShippingZipCode"].ToString()
+
 
                                 };
                                 gpDataSyncRequests.Add(gpDataSyncRequest);
@@ -173,7 +201,7 @@ namespace SalesforceDynamicsGPIntegration
                         LEFT JOIN [PD].[dbo].[RM00101] RM1
                             ON RM1.CUSTNMBR = H.CUSTNMBR
 
-                        LEFT JOIN [PD].[dbo].[CS_IV00101] I
+                        LEFT JOIN [PD].[dbo].[IV00101] I
                             ON L.ITEMNMBR = I.ITEMNMBR
 
                         LEFT JOIN [PD].[dbo].[IV40400] E
@@ -194,6 +222,12 @@ namespace SalesforceDynamicsGPIntegration
                             ON ST_CITY.STATE = H.STATE
                             AND ST_CITY.CITY = H.CITY
                             AND LTRIM(RTRIM(ST_CITY. CITY)) <> ''
+                        LEFT JOIN  [PD].[dbo].[RM00301] SAL 
+                        ON SAL.SLPRSNID = CASE ISNULL(SH.CS_Shipto, 1)
+                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
+                            ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                        END
+                        
                      WHERE 
                         CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
