@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
 namespace SalesforceDynamicsGPIntegration
@@ -42,7 +42,24 @@ namespace SalesforceDynamicsGPIntegration
             {
                 var encoded = rawConfig[key];
                 if (!string.IsNullOrEmpty(encoded))
-                    decoded[key] = SensitiveDataCodec.Decode(encoded);
+                {
+                    if (LooksLikeBase64(encoded))
+                    {
+                        try
+                        {
+                            decoded[key] = SensitiveDataCodec.Decode(encoded);
+                        }
+                        catch
+                        {
+                            // Fall back to raw value when secret is not sealed with this codec.
+                            decoded[key] = encoded;
+                        }
+                    }
+                    else
+                    {
+                        decoded[key] = encoded;
+                    }
+                }
             }
 
             var config = new ConfigurationBuilder()
@@ -55,8 +72,6 @@ namespace SalesforceDynamicsGPIntegration
             var salesforceService = new SynchronizationService(config, logger);
             await salesforceService.StartSynchronizationAsync();
             Console.WriteLine("\nFinished reading invoices.");
-            Console.WriteLine("Press any key to exit...");
-            Console.ReadKey();
         }
         private static void SealSecrets(string appSettingsPath)
         {
@@ -121,6 +136,31 @@ namespace SalesforceDynamicsGPIntegration
             return input?.Trim().Replace(",", " ") ?? String.Empty;
         }
 
+        private static bool LooksLikeBase64(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value) || value.Length % 4 != 0)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < value.Length; i++)
+            {
+                char c = value[i];
+                bool isValid =
+                    (c >= 'A' && c <= 'Z') ||
+                    (c >= 'a' && c <= 'z') ||
+                    (c >= '0' && c <= '9') ||
+                    c == '+' || c == '/' || c == '=';
+
+                if (!isValid)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         static void VerifyTables(SqlConnection connection)
         {
             // Print all tables
@@ -140,8 +180,6 @@ namespace SalesforceDynamicsGPIntegration
                 {
                     Console.WriteLine($"ERROR: Required table '{table}' does NOT exist in this database!");
                     Console.WriteLine("Please check your Dynamics GP database selection or configuration.");
-                    Console.WriteLine("\nPress any key to exit...");
-                    Console.ReadKey();
                     return; // stop program
                 }
             }

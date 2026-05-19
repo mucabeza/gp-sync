@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
 namespace SalesforceDynamicsGPIntegration
@@ -134,7 +134,6 @@ namespace SalesforceDynamicsGPIntegration
             {
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-
                     command.Parameters.AddRange(syncDataSettings.GetParameters());
                     command.Parameters.Add(new SqlParameter("@Offset", SqlDbType.Int) { Value = (pageNumber - 1) * this.syncDataSettings.BatchSize });
                     command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int) { Value = this.syncDataSettings.BatchSize });

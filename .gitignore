@@ -311,3 +311,524 @@ publish/win-x64/System.Xml.XPath.dll
 publish/win-x64/System.Xml.XPath.XDocument.dll
 publish/win-x64/ucrtbase.dll
 publish/win-x64/WindowsBase.dll
+publish/appsettings.json
+publish/SalesforceDynamicsGpIntegration-win-x64.zip
+publish/publish/win-x64/appsettings.json
+publish/publish/win-x64/Azure.Core.dll
+publish/publish/win-x64/Azure.Identity.dll
+publish/publish/win-x64/clretwrc.dll
+publish/publish/win-x64/clrgc.dll
+publish/publish/win-x64/clrgcexp.dll
+publish/publish/win-x64/clrjit.dll
+publish/publish/win-x64/coreclr.dll
+publish/publish/win-x64/hostfxr.dll
+publish/publish/win-x64/hostpolicy.dll
+publish/publish/win-x64/Microsoft.Bcl.AsyncInterfaces.dll
+publish/publish/win-x64/Microsoft.CSharp.dll
+publish/publish/win-x64/Microsoft.Data.SqlClient.dll
+publish/publish/win-x64/Microsoft.Data.SqlClient.SNI.dll
+publish/publish/win-x64/Microsoft.DiaSymReader.Native.amd64.dll
+publish/publish/win-x64/Microsoft.Extensions.Configuration.Abstractions.dll
+publish/publish/win-x64/Microsoft.Extensions.Configuration.dll
+publish/publish/win-x64/Microsoft.Extensions.Configuration.FileExtensions.dll
+publish/publish/win-x64/Microsoft.Extensions.Configuration.Json.dll
+publish/publish/win-x64/Microsoft.Extensions.FileProviders.Abstractions.dll
+publish/publish/win-x64/Microsoft.Extensions.FileProviders.Physical.dll
+publish/publish/win-x64/Microsoft.Extensions.FileSystemGlobbing.dll
+publish/publish/win-x64/Microsoft.Extensions.Primitives.dll
+publish/publish/win-x64/Microsoft.Identity.Client.dll
+publish/publish/win-x64/Microsoft.Identity.Client.Extensions.Msal.dll
+publish/publish/win-x64/Microsoft.IdentityModel.Abstractions.dll
+publish/publish/win-x64/Microsoft.IdentityModel.JsonWebTokens.dll
+publish/publish/win-x64/Microsoft.IdentityModel.Logging.dll
+publish/publish/win-x64/Microsoft.IdentityModel.Protocols.dll
+publish/publish/win-x64/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+publish/publish/win-x64/Microsoft.IdentityModel.Tokens.dll
+publish/publish/win-x64/Microsoft.SqlServer.Server.dll
+publish/publish/win-x64/Microsoft.VisualBasic.Core.dll
+publish/publish/win-x64/Microsoft.VisualBasic.dll
+publish/publish/win-x64/Microsoft.Win32.Primitives.dll
+publish/publish/win-x64/Microsoft.Win32.Registry.dll
+publish/publish/win-x64/Microsoft.Win32.SystemEvents.dll
+publish/publish/win-x64/mscordaccore_amd64_amd64_8.0.1525.16413.dll
+publish/publish/win-x64/mscordaccore_amd64_amd64_9.0.425.16305.dll
+publish/publish/win-x64/mscordaccore.dll
+publish/publish/win-x64/mscordbi.dll
+publish/publish/win-x64/mscorlib.dll
+publish/publish/win-x64/mscorrc.dll
+publish/publish/win-x64/msquic.dll
+publish/publish/win-x64/NetCoreForce.Client.dll
+publish/publish/win-x64/netstandard.dll
+publish/publish/win-x64/Newtonsoft.Json.dll
+publish/publish/win-x64/SalesforceDynamicsGpIntegration.deps.json
+publish/publish/win-x64/SalesforceDynamicsGpIntegration.dll
+publish/publish/win-x64/SalesforceDynamicsGpIntegration.pdb
+publish/publish/win-x64/SalesforceDynamicsGpIntegration.runtimeconfig.json
+publish/publish/win-x64/System.AppContext.dll
+publish/publish/win-x64/System.Buffers.dll
+publish/publish/win-x64/System.ClientModel.dll
+publish/publish/win-x64/System.Collections.Concurrent.dll
+publish/publish/win-x64/System.Collections.dll
+publish/publish/win-x64/System.Collections.Immutable.dll
+publish/publish/win-x64/System.Collections.NonGeneric.dll
+publish/publish/win-x64/System.Collections.Specialized.dll
+publish/publish/win-x64/System.ComponentModel.Annotations.dll
+publish/publish/win-x64/System.ComponentModel.DataAnnotations.dll
+publish/publish/win-x64/System.ComponentModel.dll
+publish/publish/win-x64/System.ComponentModel.EventBasedAsync.dll
+publish/publish/win-x64/System.ComponentModel.Primitives.dll
+publish/publish/win-x64/System.ComponentModel.TypeConverter.dll
+publish/publish/win-x64/System.Configuration.ConfigurationManager.dll
+publish/publish/win-x64/System.Configuration.dll
+publish/publish/win-x64/System.Console.dll
+publish/publish/win-x64/System.Core.dll
+publish/publish/win-x64/System.Data.Common.dll
+publish/publish/win-x64/System.Data.DataSetExtensions.dll
+publish/publish/win-x64/System.Data.dll
+publish/publish/win-x64/System.Diagnostics.Contracts.dll
+publish/publish/win-x64/System.Diagnostics.Debug.dll
+publish/publish/win-x64/System.Diagnostics.DiagnosticSource.dll
+publish/publish/win-x64/System.Diagnostics.EventLog.dll
+publish/publish/win-x64/System.Diagnostics.EventLog.Messages.dll
+publish/publish/win-x64/System.Diagnostics.FileVersionInfo.dll
+publish/publish/win-x64/System.Diagnostics.Process.dll
+publish/publish/win-x64/System.Diagnostics.StackTrace.dll
+publish/publish/win-x64/System.Diagnostics.TextWriterTraceListener.dll
+publish/publish/win-x64/System.Diagnostics.Tools.dll
+publish/publish/win-x64/System.Diagnostics.TraceSource.dll
+publish/publish/win-x64/System.Diagnostics.Tracing.dll
+publish/publish/win-x64/System.dll
+publish/publish/win-x64/System.Drawing.Common.dll
+publish/publish/win-x64/System.Drawing.dll
+publish/publish/win-x64/System.Drawing.Primitives.dll
+publish/publish/win-x64/System.Dynamic.Runtime.dll
+publish/publish/win-x64/System.Formats.Asn1.dll
+publish/publish/win-x64/System.Formats.Tar.dll
+publish/publish/win-x64/System.Globalization.Calendars.dll
+publish/publish/win-x64/System.Globalization.dll
+publish/publish/win-x64/System.Globalization.Extensions.dll
+publish/publish/win-x64/System.IdentityModel.Tokens.Jwt.dll
+publish/publish/win-x64/System.IO.Compression.Brotli.dll
+publish/publish/win-x64/System.IO.Compression.dll
+publish/publish/win-x64/System.IO.Compression.FileSystem.dll
+publish/publish/win-x64/System.IO.Compression.Native.dll
+publish/publish/win-x64/System.IO.Compression.ZipFile.dll
+publish/publish/win-x64/System.IO.dll
+publish/publish/win-x64/System.IO.FileSystem.AccessControl.dll
+publish/publish/win-x64/System.IO.FileSystem.dll
+publish/publish/win-x64/System.IO.FileSystem.DriveInfo.dll
+publish/publish/win-x64/System.IO.FileSystem.Primitives.dll
+publish/publish/win-x64/System.IO.FileSystem.Watcher.dll
+publish/publish/win-x64/System.IO.IsolatedStorage.dll
+publish/publish/win-x64/System.IO.MemoryMappedFiles.dll
+publish/publish/win-x64/System.IO.Pipelines.dll
+publish/publish/win-x64/System.IO.Pipes.AccessControl.dll
+publish/publish/win-x64/System.IO.Pipes.dll
+publish/publish/win-x64/System.IO.UnmanagedMemoryStream.dll
+publish/publish/win-x64/System.Linq.dll
+publish/publish/win-x64/System.Linq.Expressions.dll
+publish/publish/win-x64/System.Linq.Parallel.dll
+publish/publish/win-x64/System.Linq.Queryable.dll
+publish/publish/win-x64/System.Memory.Data.dll
+publish/publish/win-x64/System.Memory.dll
+publish/publish/win-x64/System.Net.dll
+publish/publish/win-x64/System.Net.Http.dll
+publish/publish/win-x64/System.Net.Http.Json.dll
+publish/publish/win-x64/System.Net.HttpListener.dll
+publish/publish/win-x64/System.Net.Mail.dll
+publish/publish/win-x64/System.Net.NameResolution.dll
+publish/publish/win-x64/System.Net.NetworkInformation.dll
+publish/publish/win-x64/System.Net.Ping.dll
+publish/publish/win-x64/System.Net.Primitives.dll
+publish/publish/win-x64/System.Net.Quic.dll
+publish/publish/win-x64/System.Net.Requests.dll
+publish/publish/win-x64/System.Net.Security.dll
+publish/publish/win-x64/System.Net.ServicePoint.dll
+publish/publish/win-x64/System.Net.Sockets.dll
+publish/publish/win-x64/System.Net.WebClient.dll
+publish/publish/win-x64/System.Net.WebHeaderCollection.dll
+publish/publish/win-x64/System.Net.WebProxy.dll
+publish/publish/win-x64/System.Net.WebSockets.Client.dll
+publish/publish/win-x64/System.Net.WebSockets.dll
+publish/publish/win-x64/System.Numerics.dll
+publish/publish/win-x64/System.Numerics.Vectors.dll
+publish/publish/win-x64/System.ObjectModel.dll
+publish/publish/win-x64/System.Private.CoreLib.dll
+publish/publish/win-x64/System.Private.DataContractSerialization.dll
+publish/publish/win-x64/System.Private.Uri.dll
+publish/publish/win-x64/System.Private.Xml.dll
+publish/publish/win-x64/System.Private.Xml.Linq.dll
+publish/publish/win-x64/System.Reflection.DispatchProxy.dll
+publish/publish/win-x64/System.Reflection.dll
+publish/publish/win-x64/System.Reflection.Emit.dll
+publish/publish/win-x64/System.Reflection.Emit.ILGeneration.dll
+publish/publish/win-x64/System.Reflection.Emit.Lightweight.dll
+publish/publish/win-x64/System.Reflection.Extensions.dll
+publish/publish/win-x64/System.Reflection.Metadata.dll
+publish/publish/win-x64/System.Reflection.Primitives.dll
+publish/publish/win-x64/System.Reflection.TypeExtensions.dll
+publish/publish/win-x64/System.Resources.Reader.dll
+publish/publish/win-x64/System.Resources.ResourceManager.dll
+publish/publish/win-x64/System.Resources.Writer.dll
+publish/publish/win-x64/System.Runtime.Caching.dll
+publish/publish/win-x64/System.Runtime.CompilerServices.Unsafe.dll
+publish/publish/win-x64/System.Runtime.CompilerServices.VisualC.dll
+publish/publish/win-x64/System.Runtime.dll
+publish/publish/win-x64/System.Runtime.Extensions.dll
+publish/publish/win-x64/System.Runtime.Handles.dll
+publish/publish/win-x64/System.Runtime.InteropServices.dll
+publish/publish/win-x64/System.Runtime.InteropServices.JavaScript.dll
+publish/publish/win-x64/System.Runtime.InteropServices.RuntimeInformation.dll
+publish/publish/win-x64/System.Runtime.Intrinsics.dll
+publish/publish/win-x64/System.Runtime.Loader.dll
+publish/publish/win-x64/System.Runtime.Numerics.dll
+publish/publish/win-x64/System.Runtime.Serialization.dll
+publish/publish/win-x64/System.Runtime.Serialization.Formatters.dll
+publish/publish/win-x64/System.Runtime.Serialization.Json.dll
+publish/publish/win-x64/System.Runtime.Serialization.Primitives.dll
+publish/publish/win-x64/System.Runtime.Serialization.Xml.dll
+publish/publish/win-x64/System.Security.AccessControl.dll
+publish/publish/win-x64/System.Security.Claims.dll
+publish/publish/win-x64/System.Security.Cryptography.Algorithms.dll
+publish/publish/win-x64/System.Security.Cryptography.Cng.dll
+publish/publish/win-x64/System.Security.Cryptography.Csp.dll
+publish/publish/win-x64/System.Security.Cryptography.dll
+publish/publish/win-x64/System.Security.Cryptography.Encoding.dll
+publish/publish/win-x64/System.Security.Cryptography.OpenSsl.dll
+publish/publish/win-x64/System.Security.Cryptography.Primitives.dll
+publish/publish/win-x64/System.Security.Cryptography.ProtectedData.dll
+publish/publish/win-x64/System.Security.Cryptography.X509Certificates.dll
+publish/publish/win-x64/System.Security.dll
+publish/publish/win-x64/System.Security.Permissions.dll
+publish/publish/win-x64/System.Security.Principal.dll
+publish/publish/win-x64/System.Security.Principal.Windows.dll
+publish/publish/win-x64/System.Security.SecureString.dll
+publish/publish/win-x64/System.ServiceModel.Web.dll
+publish/publish/win-x64/System.ServiceProcess.dll
+publish/publish/win-x64/System.Text.Encoding.CodePages.dll
+publish/publish/win-x64/System.Text.Encoding.dll
+publish/publish/win-x64/System.Text.Encoding.Extensions.dll
+publish/publish/win-x64/System.Text.Encodings.Web.dll
+publish/publish/win-x64/System.Text.Json.dll
+publish/publish/win-x64/System.Text.RegularExpressions.dll
+publish/publish/win-x64/System.Threading.Channels.dll
+publish/publish/win-x64/System.Threading.dll
+publish/publish/win-x64/System.Threading.Overlapped.dll
+publish/publish/win-x64/System.Threading.Tasks.Dataflow.dll
+publish/publish/win-x64/System.Threading.Tasks.dll
+publish/publish/win-x64/System.Threading.Tasks.Extensions.dll
+publish/publish/win-x64/System.Threading.Tasks.Parallel.dll
+publish/publish/win-x64/System.Threading.Thread.dll
+publish/publish/win-x64/System.Threading.ThreadPool.dll
+publish/publish/win-x64/System.Threading.Timer.dll
+publish/publish/win-x64/System.Transactions.dll
+publish/publish/win-x64/System.Transactions.Local.dll
+publish/publish/win-x64/System.ValueTuple.dll
+publish/publish/win-x64/System.Web.dll
+publish/publish/win-x64/System.Web.HttpUtility.dll
+publish/publish/win-x64/System.Windows.dll
+publish/publish/win-x64/System.Windows.Extensions.dll
+publish/publish/win-x64/System.Xml.dll
+publish/publish/win-x64/System.Xml.Linq.dll
+publish/publish/win-x64/System.Xml.ReaderWriter.dll
+publish/publish/win-x64/System.Xml.Serialization.dll
+publish/publish/win-x64/System.Xml.XDocument.dll
+publish/publish/win-x64/System.Xml.XmlDocument.dll
+publish/publish/win-x64/System.Xml.XmlSerializer.dll
+publish/publish/win-x64/System.Xml.XPath.dll
+publish/publish/win-x64/System.Xml.XPath.XDocument.dll
+publish/publish/win-x64/WindowsBase.dll
+publish/publish/win-x64/de/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/es/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/fr/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/it/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/ja/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/ko/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/pt-BR/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/ru/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/zh-Hans/Microsoft.Data.SqlClient.resources.dll
+publish/publish/win-x64/zh-Hant/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/api-ms-win-core-console-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-datetime-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-debug-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-errorhandling-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-file-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-file-l1-2-0.dll
+publish/publish 2/win-x64/api-ms-win-core-file-l2-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-handle-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-heap-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-interlocked-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-libraryloader-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-localization-l1-2-0.dll
+publish/publish 2/win-x64/api-ms-win-core-memory-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-namedpipe-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-processenvironment-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-processthreads-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-processthreads-l1-1-1.dll
+publish/publish 2/win-x64/api-ms-win-core-profile-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-rtlsupport-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-string-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-synch-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-synch-l1-2-0.dll
+publish/publish 2/win-x64/api-ms-win-core-sysinfo-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-timezone-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-core-util-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-conio-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-convert-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-environment-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-filesystem-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-heap-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-locale-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-math-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-multibyte-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-private-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-process-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-runtime-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-stdio-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-string-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-time-l1-1-0.dll
+publish/publish 2/win-x64/api-ms-win-crt-utility-l1-1-0.dll
+publish/publish 2/win-x64/appsettings.json
+publish/publish 2/win-x64/Azure.Core.dll
+publish/publish 2/win-x64/Azure.Identity.dll
+publish/publish 2/win-x64/clrcompression.dll
+publish/publish 2/win-x64/clretwrc.dll
+publish/publish 2/win-x64/clrgc.dll
+publish/publish 2/win-x64/clrgcexp.dll
+publish/publish 2/win-x64/clrjit.dll
+publish/publish 2/win-x64/coreclr.dll
+publish/publish 2/win-x64/dbgshim.dll
+publish/publish 2/win-x64/hostfxr.dll
+publish/publish 2/win-x64/hostpolicy.dll
+publish/publish 2/win-x64/Microsoft.Bcl.AsyncInterfaces.dll
+publish/publish 2/win-x64/Microsoft.CSharp.dll
+publish/publish 2/win-x64/Microsoft.Data.SqlClient.dll
+publish/publish 2/win-x64/Microsoft.Data.SqlClient.SNI.dll
+publish/publish 2/win-x64/Microsoft.DiaSymReader.Native.amd64.dll
+publish/publish 2/win-x64/Microsoft.Extensions.Configuration.Abstractions.dll
+publish/publish 2/win-x64/Microsoft.Extensions.Configuration.dll
+publish/publish 2/win-x64/Microsoft.Extensions.Configuration.FileExtensions.dll
+publish/publish 2/win-x64/Microsoft.Extensions.Configuration.Json.dll
+publish/publish 2/win-x64/Microsoft.Extensions.FileProviders.Abstractions.dll
+publish/publish 2/win-x64/Microsoft.Extensions.FileProviders.Physical.dll
+publish/publish 2/win-x64/Microsoft.Extensions.FileSystemGlobbing.dll
+publish/publish 2/win-x64/Microsoft.Extensions.Primitives.dll
+publish/publish 2/win-x64/Microsoft.Identity.Client.dll
+publish/publish 2/win-x64/Microsoft.Identity.Client.Extensions.Msal.dll
+publish/publish 2/win-x64/Microsoft.IdentityModel.Abstractions.dll
+publish/publish 2/win-x64/Microsoft.IdentityModel.JsonWebTokens.dll
+publish/publish 2/win-x64/Microsoft.IdentityModel.Logging.dll
+publish/publish 2/win-x64/Microsoft.IdentityModel.Protocols.dll
+publish/publish 2/win-x64/Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+publish/publish 2/win-x64/Microsoft.IdentityModel.Tokens.dll
+publish/publish 2/win-x64/Microsoft.SqlServer.Server.dll
+publish/publish 2/win-x64/Microsoft.VisualBasic.Core.dll
+publish/publish 2/win-x64/Microsoft.VisualBasic.dll
+publish/publish 2/win-x64/Microsoft.Win32.Primitives.dll
+publish/publish 2/win-x64/Microsoft.Win32.Registry.dll
+publish/publish 2/win-x64/Microsoft.Win32.SystemEvents.dll
+publish/publish 2/win-x64/mscordaccore_amd64_amd64_4.700.22.55902.dll
+publish/publish 2/win-x64/mscordaccore_amd64_amd64_8.0.1525.16413.dll
+publish/publish 2/win-x64/mscordaccore_amd64_amd64_9.0.425.16305.dll
+publish/publish 2/win-x64/mscordaccore.dll
+publish/publish 2/win-x64/mscordbi.dll
+publish/publish 2/win-x64/mscorlib.dll
+publish/publish 2/win-x64/mscorrc.debug.dll
+publish/publish 2/win-x64/mscorrc.dll
+publish/publish 2/win-x64/msquic.dll
+publish/publish 2/win-x64/NetCoreForce.Client.dll
+publish/publish 2/win-x64/netstandard.dll
+publish/publish 2/win-x64/Newtonsoft.Json.dll
+publish/publish 2/win-x64/SalesforceDynamicsGpIntegration.deps.json
+publish/publish 2/win-x64/SalesforceDynamicsGpIntegration.dll
+publish/publish 2/win-x64/SalesforceDynamicsGpIntegration.pdb
+publish/publish 2/win-x64/SalesforceDynamicsGpIntegration.runtimeconfig.json
+publish/publish 2/win-x64/SOS_README.md
+publish/publish 2/win-x64/System.AppContext.dll
+publish/publish 2/win-x64/System.Buffers.dll
+publish/publish 2/win-x64/System.ClientModel.dll
+publish/publish 2/win-x64/System.Collections.Concurrent.dll
+publish/publish 2/win-x64/System.Collections.dll
+publish/publish 2/win-x64/System.Collections.Immutable.dll
+publish/publish 2/win-x64/System.Collections.NonGeneric.dll
+publish/publish 2/win-x64/System.Collections.Specialized.dll
+publish/publish 2/win-x64/System.ComponentModel.Annotations.dll
+publish/publish 2/win-x64/System.ComponentModel.DataAnnotations.dll
+publish/publish 2/win-x64/System.ComponentModel.dll
+publish/publish 2/win-x64/System.ComponentModel.EventBasedAsync.dll
+publish/publish 2/win-x64/System.ComponentModel.Primitives.dll
+publish/publish 2/win-x64/System.ComponentModel.TypeConverter.dll
+publish/publish 2/win-x64/System.Configuration.ConfigurationManager.dll
+publish/publish 2/win-x64/System.Configuration.dll
+publish/publish 2/win-x64/System.Console.dll
+publish/publish 2/win-x64/System.Core.dll
+publish/publish 2/win-x64/System.Data.Common.dll
+publish/publish 2/win-x64/System.Data.DataSetExtensions.dll
+publish/publish 2/win-x64/System.Data.dll
+publish/publish 2/win-x64/System.Diagnostics.Contracts.dll
+publish/publish 2/win-x64/System.Diagnostics.Debug.dll
+publish/publish 2/win-x64/System.Diagnostics.DiagnosticSource.dll
+publish/publish 2/win-x64/System.Diagnostics.EventLog.dll
+publish/publish 2/win-x64/System.Diagnostics.EventLog.Messages.dll
+publish/publish 2/win-x64/System.Diagnostics.FileVersionInfo.dll
+publish/publish 2/win-x64/System.Diagnostics.Process.dll
+publish/publish 2/win-x64/System.Diagnostics.StackTrace.dll
+publish/publish 2/win-x64/System.Diagnostics.TextWriterTraceListener.dll
+publish/publish 2/win-x64/System.Diagnostics.Tools.dll
+publish/publish 2/win-x64/System.Diagnostics.TraceSource.dll
+publish/publish 2/win-x64/System.Diagnostics.Tracing.dll
+publish/publish 2/win-x64/System.dll
+publish/publish 2/win-x64/System.Drawing.Common.dll
+publish/publish 2/win-x64/System.Drawing.dll
+publish/publish 2/win-x64/System.Drawing.Primitives.dll
+publish/publish 2/win-x64/System.Dynamic.Runtime.dll
+publish/publish 2/win-x64/System.Formats.Asn1.dll
+publish/publish 2/win-x64/System.Formats.Tar.dll
+publish/publish 2/win-x64/System.Globalization.Calendars.dll
+publish/publish 2/win-x64/System.Globalization.dll
+publish/publish 2/win-x64/System.Globalization.Extensions.dll
+publish/publish 2/win-x64/System.IdentityModel.Tokens.Jwt.dll
+publish/publish 2/win-x64/System.IO.Compression.Brotli.dll
+publish/publish 2/win-x64/System.IO.Compression.dll
+publish/publish 2/win-x64/System.IO.Compression.FileSystem.dll
+publish/publish 2/win-x64/System.IO.Compression.Native.dll
+publish/publish 2/win-x64/System.IO.Compression.ZipFile.dll
+publish/publish 2/win-x64/System.IO.dll
+publish/publish 2/win-x64/System.IO.FileSystem.AccessControl.dll
+publish/publish 2/win-x64/System.IO.FileSystem.dll
+publish/publish 2/win-x64/System.IO.FileSystem.DriveInfo.dll
+publish/publish 2/win-x64/System.IO.FileSystem.Primitives.dll
+publish/publish 2/win-x64/System.IO.FileSystem.Watcher.dll
+publish/publish 2/win-x64/System.IO.IsolatedStorage.dll
+publish/publish 2/win-x64/System.IO.MemoryMappedFiles.dll
+publish/publish 2/win-x64/System.IO.Pipelines.dll
+publish/publish 2/win-x64/System.IO.Pipes.AccessControl.dll
+publish/publish 2/win-x64/System.IO.Pipes.dll
+publish/publish 2/win-x64/System.IO.UnmanagedMemoryStream.dll
+publish/publish 2/win-x64/System.Linq.dll
+publish/publish 2/win-x64/System.Linq.Expressions.dll
+publish/publish 2/win-x64/System.Linq.Parallel.dll
+publish/publish 2/win-x64/System.Linq.Queryable.dll
+publish/publish 2/win-x64/System.Memory.Data.dll
+publish/publish 2/win-x64/System.Memory.dll
+publish/publish 2/win-x64/System.Net.dll
+publish/publish 2/win-x64/System.Net.Http.dll
+publish/publish 2/win-x64/System.Net.Http.Json.dll
+publish/publish 2/win-x64/System.Net.HttpListener.dll
+publish/publish 2/win-x64/System.Net.Mail.dll
+publish/publish 2/win-x64/System.Net.NameResolution.dll
+publish/publish 2/win-x64/System.Net.NetworkInformation.dll
+publish/publish 2/win-x64/System.Net.Ping.dll
+publish/publish 2/win-x64/System.Net.Primitives.dll
+publish/publish 2/win-x64/System.Net.Quic.dll
+publish/publish 2/win-x64/System.Net.Requests.dll
+publish/publish 2/win-x64/System.Net.Security.dll
+publish/publish 2/win-x64/System.Net.ServicePoint.dll
+publish/publish 2/win-x64/System.Net.Sockets.dll
+publish/publish 2/win-x64/System.Net.WebClient.dll
+publish/publish 2/win-x64/System.Net.WebHeaderCollection.dll
+publish/publish 2/win-x64/System.Net.WebProxy.dll
+publish/publish 2/win-x64/System.Net.WebSockets.Client.dll
+publish/publish 2/win-x64/System.Net.WebSockets.dll
+publish/publish 2/win-x64/System.Numerics.dll
+publish/publish 2/win-x64/System.Numerics.Vectors.dll
+publish/publish 2/win-x64/System.ObjectModel.dll
+publish/publish 2/win-x64/System.Private.CoreLib.dll
+publish/publish 2/win-x64/System.Private.DataContractSerialization.dll
+publish/publish 2/win-x64/System.Private.Uri.dll
+publish/publish 2/win-x64/System.Private.Xml.dll
+publish/publish 2/win-x64/System.Private.Xml.Linq.dll
+publish/publish 2/win-x64/System.Reflection.DispatchProxy.dll
+publish/publish 2/win-x64/System.Reflection.dll
+publish/publish 2/win-x64/System.Reflection.Emit.dll
+publish/publish 2/win-x64/System.Reflection.Emit.ILGeneration.dll
+publish/publish 2/win-x64/System.Reflection.Emit.Lightweight.dll
+publish/publish 2/win-x64/System.Reflection.Extensions.dll
+publish/publish 2/win-x64/System.Reflection.Metadata.dll
+publish/publish 2/win-x64/System.Reflection.Primitives.dll
+publish/publish 2/win-x64/System.Reflection.TypeExtensions.dll
+publish/publish 2/win-x64/System.Resources.Reader.dll
+publish/publish 2/win-x64/System.Resources.ResourceManager.dll
+publish/publish 2/win-x64/System.Resources.Writer.dll
+publish/publish 2/win-x64/System.Runtime.Caching.dll
+publish/publish 2/win-x64/System.Runtime.CompilerServices.Unsafe.dll
+publish/publish 2/win-x64/System.Runtime.CompilerServices.VisualC.dll
+publish/publish 2/win-x64/System.Runtime.dll
+publish/publish 2/win-x64/System.Runtime.Extensions.dll
+publish/publish 2/win-x64/System.Runtime.Handles.dll
+publish/publish 2/win-x64/System.Runtime.InteropServices.dll
+publish/publish 2/win-x64/System.Runtime.InteropServices.JavaScript.dll
+publish/publish 2/win-x64/System.Runtime.InteropServices.RuntimeInformation.dll
+publish/publish 2/win-x64/System.Runtime.InteropServices.WindowsRuntime.dll
+publish/publish 2/win-x64/System.Runtime.Intrinsics.dll
+publish/publish 2/win-x64/System.Runtime.Loader.dll
+publish/publish 2/win-x64/System.Runtime.Numerics.dll
+publish/publish 2/win-x64/System.Runtime.Serialization.dll
+publish/publish 2/win-x64/System.Runtime.Serialization.Formatters.dll
+publish/publish 2/win-x64/System.Runtime.Serialization.Json.dll
+publish/publish 2/win-x64/System.Runtime.Serialization.Primitives.dll
+publish/publish 2/win-x64/System.Runtime.Serialization.Xml.dll
+publish/publish 2/win-x64/System.Runtime.WindowsRuntime.dll
+publish/publish 2/win-x64/System.Runtime.WindowsRuntime.UI.Xaml.dll
+publish/publish 2/win-x64/System.Security.AccessControl.dll
+publish/publish 2/win-x64/System.Security.Claims.dll
+publish/publish 2/win-x64/System.Security.Cryptography.Algorithms.dll
+publish/publish 2/win-x64/System.Security.Cryptography.Cng.dll
+publish/publish 2/win-x64/System.Security.Cryptography.Csp.dll
+publish/publish 2/win-x64/System.Security.Cryptography.dll
+publish/publish 2/win-x64/System.Security.Cryptography.Encoding.dll
+publish/publish 2/win-x64/System.Security.Cryptography.OpenSsl.dll
+publish/publish 2/win-x64/System.Security.Cryptography.Primitives.dll
+publish/publish 2/win-x64/System.Security.Cryptography.ProtectedData.dll
+publish/publish 2/win-x64/System.Security.Cryptography.X509Certificates.dll
+publish/publish 2/win-x64/System.Security.dll
+publish/publish 2/win-x64/System.Security.Permissions.dll
+publish/publish 2/win-x64/System.Security.Principal.dll
+publish/publish 2/win-x64/System.Security.Principal.Windows.dll
+publish/publish 2/win-x64/System.Security.SecureString.dll
+publish/publish 2/win-x64/System.ServiceModel.Web.dll
+publish/publish 2/win-x64/System.ServiceProcess.dll
+publish/publish 2/win-x64/System.Text.Encoding.CodePages.dll
+publish/publish 2/win-x64/System.Text.Encoding.dll
+publish/publish 2/win-x64/System.Text.Encoding.Extensions.dll
+publish/publish 2/win-x64/System.Text.Encodings.Web.dll
+publish/publish 2/win-x64/System.Text.Json.dll
+publish/publish 2/win-x64/System.Text.RegularExpressions.dll
+publish/publish 2/win-x64/System.Threading.Channels.dll
+publish/publish 2/win-x64/System.Threading.dll
+publish/publish 2/win-x64/System.Threading.Overlapped.dll
+publish/publish 2/win-x64/System.Threading.Tasks.Dataflow.dll
+publish/publish 2/win-x64/System.Threading.Tasks.dll
+publish/publish 2/win-x64/System.Threading.Tasks.Extensions.dll
+publish/publish 2/win-x64/System.Threading.Tasks.Parallel.dll
+publish/publish 2/win-x64/System.Threading.Thread.dll
+publish/publish 2/win-x64/System.Threading.ThreadPool.dll
+publish/publish 2/win-x64/System.Threading.Timer.dll
+publish/publish 2/win-x64/System.Transactions.dll
+publish/publish 2/win-x64/System.Transactions.Local.dll
+publish/publish 2/win-x64/System.ValueTuple.dll
+publish/publish 2/win-x64/System.Web.dll
+publish/publish 2/win-x64/System.Web.HttpUtility.dll
+publish/publish 2/win-x64/System.Windows.dll
+publish/publish 2/win-x64/System.Windows.Extensions.dll
+publish/publish 2/win-x64/System.Xml.dll
+publish/publish 2/win-x64/System.Xml.Linq.dll
+publish/publish 2/win-x64/System.Xml.ReaderWriter.dll
+publish/publish 2/win-x64/System.Xml.Serialization.dll
+publish/publish 2/win-x64/System.Xml.XDocument.dll
+publish/publish 2/win-x64/System.Xml.XmlDocument.dll
+publish/publish 2/win-x64/System.Xml.XmlSerializer.dll
+publish/publish 2/win-x64/System.Xml.XPath.dll
+publish/publish 2/win-x64/System.Xml.XPath.XDocument.dll
+publish/publish 2/win-x64/ucrtbase.dll
+publish/publish 2/win-x64/WindowsBase.dll
+publish/publish 2/win-x64/de/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/es/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/fr/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/it/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/ja/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/ko/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/pt-BR/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/ru/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/zh-Hans/Microsoft.Data.SqlClient.resources.dll
+publish/publish 2/win-x64/zh-Hant/Microsoft.Data.SqlClient.resources.dll

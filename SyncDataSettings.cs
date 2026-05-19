@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 
 namespace SalesforceDynamicsGPIntegration
@@ -87,15 +87,14 @@ namespace SalesforceDynamicsGPIntegration
         }
         public SqlParameter[] GetParameters()
         {
-            //@userid
             var parameters = new List<SqlParameter>{
-                new SqlParameter("@StartDate", SqlDbType.DateTime) { Value = this.StartDate },
-                new SqlParameter("@EndDate", SqlDbType.DateTime) { Value = this.EndDate },
-                new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = this.UserId }
+                new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = this.UserId },
+                new SqlParameter("@StartDate", SqlDbType.Date) { Value = this.StartDate },
+                new SqlParameter("@EndDate", SqlDbType.Date) { Value = this.EndDate }
             };
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {
-                parameters.Add(new SqlParameter("@ItemClassType", SqlDbType.VarChar, 50) { Value = this.ItemClassType});
+                parameters.Add(new SqlParameter("@ItemClassType", SqlDbType.VarChar, 50) { Value = this.ItemClassType });
             }
             if (!string.IsNullOrEmpty(this.SalesPersonId) && this.SalesPersonId.ToUpper() != ALL_VALUES)
             {

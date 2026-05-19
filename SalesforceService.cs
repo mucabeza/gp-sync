@@ -129,6 +129,13 @@ namespace SalesforceDynamicsGPIntegration
                         authenticationResult.IsSuccess = false;
                         authenticationResult.ErrorMessage = $"{errorResponse.error}: {errorResponse.error_description}";
                         Logger.LogError($"Salesforce Auth Error: {authenticationResult.ErrorMessage}");
+
+                        if (string.Equals(errorResponse.error, "invalid_grant", StringComparison.OrdinalIgnoreCase))
+                        {
+                            var hint = BuildInvalidGrantHint();
+                            Logger.LogError(hint);
+                            Console.WriteLine(hint);
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -153,6 +160,30 @@ namespace SalesforceDynamicsGPIntegration
 
             return authenticationResult;
 
+        }
+
+        private string BuildInvalidGrantHint()
+        {
+            var baseHint = "Salesforce invalid_grant usually means credentials/environment mismatch. " +
+                           "Verify username, password+security token, and connected app client credentials.";
+
+            if (!string.IsNullOrWhiteSpace(_loginUrl) &&
+                _loginUrl.Contains("test.salesforce.com", StringComparison.OrdinalIgnoreCase) &&
+                !_username.Contains(".", StringComparison.Ordinal))
+            {
+                return baseHint + " Login URL is sandbox (test.salesforce.com). " +
+                       "Sandbox usernames are commonly in the format user@company.com.sandboxName.";
+            }
+
+            if (!string.IsNullOrWhiteSpace(_loginUrl) &&
+                _loginUrl.Contains("login.salesforce.com", StringComparison.OrdinalIgnoreCase) &&
+                _username.Contains(".", StringComparison.Ordinal))
+            {
+                return baseHint + " Login URL is production (login.salesforce.com). " +
+                       "If this is a sandbox user, switch to test.salesforce.com.";
+            }
+
+            return baseHint;
         }
 
         public async Task<ResponseWrapper> SyncGpDataAsync(GPRequestSync gPRequestSync)
