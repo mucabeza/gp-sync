@@ -60,15 +60,12 @@
         <Control Id="PasswordEdit" Type="Edit" X="15" Y="152" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__PASSWORD" Password="yes" />
         <Control Id="TokenEdit" Type="Edit" X="195" Y="152" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__SECURITYTOKEN" Password="yes" />
 
-        <Control Id="HintText" Type="Text" X="15" Y="182" Width="340" Height="28" Text="These values are stored as machine-level MAXSFGP_* environment variables for the installed application." />
-        <Control Id="ValidationHint" Type="Text" X="15" Y="214" Width="340" Height="24" Hidden="yes" Text="All fields are required to continue. Fill every value before clicking Next.">
-          <Condition Action="show">MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP = &quot;&quot; OR MAXSFGP_SALESFORCE__LOGINURL = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTID = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTSECRET = &quot;&quot; OR MAXSFGP_SALESFORCE__USERNAME = &quot;&quot; OR MAXSFGP_SALESFORCE__PASSWORD = &quot;&quot; OR MAXSFGP_SALESFORCE__SECURITYTOKEN = &quot;&quot;</Condition>
-        </Control>
+        <Control Id="HintText" Type="Text" X="15" Y="182" Width="340" Height="50" Text="These values are stored as machine-level MAXSFGP_* environment variables for the installed application. All fields are required before continuing." />
 
         <Control Id="Back" Type="PushButton" X="180" Y="268" Width="56" Height="17" Text="Back" Disabled="yes" />
-        <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Disabled="yes" Text="Next">
-          <Condition Action="enable">MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;</Condition>
-          <Publish Event="EndDialog" Value="Return" />
+        <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Text="Next">
+          <Publish Event="SpawnDialog" Value="ErrorDlg" Condition="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP = &quot;&quot; OR MAXSFGP_SALESFORCE__LOGINURL = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTID = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTSECRET = &quot;&quot; OR MAXSFGP_SALESFORCE__USERNAME = &quot;&quot; OR MAXSFGP_SALESFORCE__PASSWORD = &quot;&quot; OR MAXSFGP_SALESFORCE__SECURITYTOKEN = &quot;&quot;">1</Publish>
+          <Publish Event="EndDialog" Value="Return" Condition="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;">1</Publish>
         </Control>
         <Control Id="Cancel" Type="PushButton" X="304" Y="268" Width="56" Height="17" Cancel="yes" Text="Cancel">
           <Publish Event="EndDialog" Value="Exit" />
