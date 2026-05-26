@@ -1,0 +1,119 @@
+name: MSI smoke test
+
+description: Runs silent MSI install/uninstall checks with task, env var, and executable assertions.
+
+inputs:
+  msi-path:
+    description: Full path to MSI file.
+    required: true
+  install-folder:
+    description: Expected installation folder.
+    required: false
+    default: C:\Program Files\MaxSfGpSync
+  task-name:
+    description: Expected scheduled task name.
+    required: false
+    default: MaxSfGpSync
+  check-env-var:
+    description: Machine environment variable to validate after install and cleanup after uninstall. Empty skips env checks.
+    required: false
+    default: MAXSFGP_SALESFORCE__LOGINURL
+  expected-exe:
+    description: Executable file expected under install folder. Empty skips exe check.
+    required: false
+    default: SalesforceDynamicsGpIntegration.exe
+  test-data-prefix:
+    description: Prefix used for placeholder MSI property values.
+    required: false
+    default: smoke
+  skip-uninstall:
+    description: When true, validates install state but skips uninstall and post-uninstall checks.
+    required: false
+    default: "false"
+
+runs:
+  using: composite
+  steps:
+    - name: Run MSI smoke test
+      shell: pwsh
+      run: |
+        $msiPath = "${{ inputs.msi-path }}"
+        $installFolder = "${{ inputs.install-folder }}"
+        $taskName = "${{ inputs.task-name }}"
+        $checkEnvVar = "${{ inputs.check-env-var }}"
+        $expectedExe = "${{ inputs.expected-exe }}"
+        $prefix = "${{ inputs.test-data-prefix }}"
+        $skipUninstall = "${{ inputs.skip-uninstall }}" -eq "true"
+
+        $installArgs = @(
+          "/i", "`"$msiPath`"",
+          "/qn",
+          "/norestart",
+          "MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP=Server=localhost;Database=GP;User Id=gpuser;Password=gppassword;TrustServerCertificate=True;",
+          "MAXSFGP_SALESFORCE__LOGINURL=https://example.my.salesforce.com",
+          "MAXSFGP_SALESFORCE__CLIENTID=$prefix-client-id",
+          "MAXSFGP_SALESFORCE__CLIENTSECRET=$prefix-client-secret",
+          "MAXSFGP_SALESFORCE__USERNAME=$prefix-user@example.com",
+          "MAXSFGP_SALESFORCE__PASSWORD=$prefix-password",
+          "MAXSFGP_SALESFORCE__SECURITYTOKEN=$prefix-token"
+        )
+
+        $install = Start-Process -FilePath msiexec.exe -ArgumentList $installArgs -Wait -PassThru
+        if ($install.ExitCode -ne 0 -and $install.ExitCode -ne 3010) {
+          throw "Silent install failed with exit code $($install.ExitCode)"
+        }
+
+        if (-not (Test-Path $installFolder)) {
+          throw "Install folder not found after install: $installFolder"
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($expectedExe)) {
+          $exePath = Join-Path $installFolder $expectedExe
+          if (-not (Test-Path $exePath)) {
+            throw "Expected executable not found after install: $exePath"
+          }
+        }
+
+        schtasks /Query /TN $taskName | Out-Null
+        if ($LASTEXITCODE -ne 0) {
+          throw "Scheduled task $taskName was not created."
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($checkEnvVar)) {
+          $envValue = [Environment]::GetEnvironmentVariable($checkEnvVar, "Machine")
+          if ([string]::IsNullOrWhiteSpace($envValue)) {
+            throw "Machine environment variable $checkEnvVar was not set."
+          }
+        }
+
+        if ($skipUninstall) {
+          Write-Host "Skipping uninstall phase as requested."
+          exit 0
+        }
+
+        $uninstallArgs = @(
+          "/x", "`"$msiPath`"",
+          "/qn",
+          "/norestart"
+        )
+
+        $uninstall = Start-Process -FilePath msiexec.exe -ArgumentList $uninstallArgs -Wait -PassThru
+        if ($uninstall.ExitCode -ne 0 -and $uninstall.ExitCode -ne 3010) {
+          throw "Silent uninstall failed with exit code $($uninstall.ExitCode)"
+        }
+
+        if (Test-Path $installFolder) {
+          throw "Install folder still exists after uninstall: $installFolder"
+        }
+
+        schtasks /Query /TN $taskName | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+          throw "Scheduled task $taskName still exists after uninstall."
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($checkEnvVar)) {
+          $envValueAfter = [Environment]::GetEnvironmentVariable($checkEnvVar, "Machine")
+          if (-not [string]::IsNullOrWhiteSpace($envValueAfter)) {
+            throw "Machine environment variable $checkEnvVar still exists after uninstall."
+          }
+        }

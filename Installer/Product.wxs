@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Package
+    Name="MAX Salesforce GP Sync"
+    Manufacturer="MAX"
+    Version="1.0.0"
+    UpgradeCode="B4CF8014-C67F-4B64-8A44-2CB7B320D5DB"
+    Language="1033"
+    Scope="perMachine">
+
+    <MajorUpgrade
+      DowngradeErrorMessage="A newer version of MAX Salesforce GP Sync is already installed." />
+
+    <MediaTemplate EmbedCab="yes" />
+
+    <Property Id="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__LOGINURL" Value="" Secure="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__CLIENTID" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__CLIENTSECRET" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__USERNAME" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__PASSWORD" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__SECURITYTOKEN" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_TASK_NAME" Value="MaxSfGpSync" />
+    <Property Id="DOTNET_X64_INSTALL_LOCATION">
+      <RegistrySearch
+        Root="HKLM"
+        Key="SOFTWARE\dotnet\Setup\InstalledVersions\x64"
+        Name="InstallLocation"
+        Type="raw"
+        Bitness="always64" />
+    </Property>
+
+    <Launch
+      Condition="Installed OR DOTNET_X64_INSTALL_LOCATION"
+      Message="This application requires the x64 .NET runtime. Install the .NET Core 3.1 x64 runtime (or compatible host runtime) and run setup again." />
+
+    <StandardDirectory Id="ProgramFiles64Folder">
+      <Directory Id="INSTALLFOLDER" Name="MaxSfGpSync" />
+    </StandardDirectory>
+
+    <UI>
+      <Dialog Id="MaxConfigDialog" Width="370" Height="300" Title="MAX Salesforce GP Sync Configuration">
+        <Control Id="Title" Type="Text" X="15" Y="8" Width="340" Height="20" NoPrefix="yes" Text="Provide runtime configuration values" />
+
+        <Control Id="ConnLabel" Type="Text" X="15" Y="34" Width="340" Height="12" Text="Dynamics GP connection string" />
+        <Control Id="ConnEdit" Type="Edit" X="15" Y="47" Width="340" Height="18" Property="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP" />
+
+        <Control Id="LoginLabel" Type="Text" X="15" Y="69" Width="170" Height="12" Text="Salesforce Login URL" />
+        <Control Id="ClientIdLabel" Type="Text" X="195" Y="69" Width="160" Height="12" Text="Salesforce Client ID" />
+        <Control Id="LoginEdit" Type="Edit" X="15" Y="82" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__LOGINURL" />
+        <Control Id="ClientIdEdit" Type="Edit" X="195" Y="82" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__CLIENTID" />
+
+        <Control Id="ClientSecretLabel" Type="Text" X="15" Y="104" Width="170" Height="12" Text="Salesforce Client Secret" />
+        <Control Id="UsernameLabel" Type="Text" X="195" Y="104" Width="160" Height="12" Text="Salesforce Username" />
+        <Control Id="ClientSecretEdit" Type="Edit" X="15" Y="117" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__CLIENTSECRET" Password="yes" />
+        <Control Id="UsernameEdit" Type="Edit" X="195" Y="117" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__USERNAME" />
+
+        <Control Id="PasswordLabel" Type="Text" X="15" Y="139" Width="170" Height="12" Text="Salesforce Password" />
+        <Control Id="TokenLabel" Type="Text" X="195" Y="139" Width="160" Height="12" Text="Salesforce Security Token" />
+        <Control Id="PasswordEdit" Type="Edit" X="15" Y="152" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__PASSWORD" Password="yes" />
+        <Control Id="TokenEdit" Type="Edit" X="195" Y="152" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__SECURITYTOKEN" Password="yes" />
+
+        <Control Id="HintText" Type="Text" X="15" Y="182" Width="340" Height="28" Text="These values are stored as machine-level MAXSFGP_* environment variables for the installed application." />
+        <Control Id="ValidationHint" Type="Text" X="15" Y="214" Width="340" Height="24" Hidden="yes" Text="All fields are required to continue. Fill every value before clicking Next.">
+          <ShowCondition>MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP = &quot;&quot; OR MAXSFGP_SALESFORCE__LOGINURL = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTID = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTSECRET = &quot;&quot; OR MAXSFGP_SALESFORCE__USERNAME = &quot;&quot; OR MAXSFGP_SALESFORCE__PASSWORD = &quot;&quot; OR MAXSFGP_SALESFORCE__SECURITYTOKEN = &quot;&quot;</ShowCondition>
+        </Control>
+
+        <Control Id="Back" Type="PushButton" X="180" Y="268" Width="56" Height="17" Text="Back" Disabled="yes" />
+        <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Disabled="yes" Text="Next">
+          <EnableCondition>MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;</EnableCondition>
+          <Publish Event="EndDialog" Value="Return" />
+        </Control>
+        <Control Id="Cancel" Type="PushButton" X="304" Y="268" Width="56" Height="17" Cancel="yes" Text="Cancel">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+      </Dialog>
+
+      <InstallUISequence>
+        <Show Dialog="MaxConfigDialog" Before="ExecuteAction" Condition="NOT Installed" />
+      </InstallUISequence>
+    </UI>
+
+    <Feature Id="MainFeature" Title="MAX Salesforce GP Sync" Level="1">
+      <ComponentGroupRef Id="AppFiles" />
+      <ComponentGroupRef Id="RuntimeConfig" />
+    </Feature>
+
+    <CustomAction
+      Id="CreateStartupTask"
+      Directory="SystemFolder"
+      ExeCommand='cmd.exe /c schtasks /Create /TN "[MAXSFGP_TASK_NAME]" /SC ONLOGON /TR "&quot;[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe&quot;" /RL HIGHEST /F'
+      Execute="immediate"
+      Return="check"
+      Impersonate="no" />
+
+    <CustomAction
+      Id="DeleteStartupTask"
+      Directory="SystemFolder"
+      ExeCommand='cmd.exe /c schtasks /Delete /TN "[MAXSFGP_TASK_NAME]" /F'
+      Execute="immediate"
+      Return="ignore"
+      Impersonate="no" />
+
+    <InstallExecuteSequence>
+      <Custom Action="CreateStartupTask" After="InstallFiles" Condition="NOT REMOVE" />
+      <Custom Action="DeleteStartupTask" Before="RemoveFiles" Condition="REMOVE=&quot;ALL&quot;" />
+    </InstallExecuteSequence>
+  </Package>
+
+  <Fragment>
+    <ComponentGroup Id="RuntimeConfig" Directory="INSTALLFOLDER">
+      <Component Id="RuntimeConfigEnv" Guid="*">
+        <Environment
+          Id="EnvDynamicsGpConnection"
+          Action="set"
+          Name="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP]" />
+        <Environment
+          Id="EnvSalesforceLoginUrl"
+          Action="set"
+          Name="MAXSFGP_SALESFORCE__LOGINURL"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_SALESFORCE__LOGINURL]" />
+        <Environment
+          Id="EnvSalesforceClientId"
+          Action="set"
+          Name="MAXSFGP_SALESFORCE__CLIENTID"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_SALESFORCE__CLIENTID]" />
+        <Environment
+          Id="EnvSalesforceClientSecret"
+          Action="set"
+          Name="MAXSFGP_SALESFORCE__CLIENTSECRET"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_SALESFORCE__CLIENTSECRET]" />
+        <Environment
+          Id="EnvSalesforceUsername"
+          Action="set"
+          Name="MAXSFGP_SALESFORCE__USERNAME"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_SALESFORCE__USERNAME]" />
+        <Environment
+          Id="EnvSalesforcePassword"
+          Action="set"
+          Name="MAXSFGP_SALESFORCE__PASSWORD"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_SALESFORCE__PASSWORD]" />
+        <Environment
+          Id="EnvSalesforceSecurityToken"
+          Action="set"
+          Name="MAXSFGP_SALESFORCE__SECURITYTOKEN"
+          Part="all"
+          Permanent="no"
+          System="yes"
+          Value="[MAXSFGP_SALESFORCE__SECURITYTOKEN]" />
+        <RegistryValue Root="HKLM" Key="Software\MAX\MaxSfGpSync" Name="RuntimeConfig" Type="integer" Value="1" KeyPath="yes" />
+      </Component>
+    </ComponentGroup>
+  </Fragment>
+
+</Wix>

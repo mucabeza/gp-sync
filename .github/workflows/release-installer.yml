@@ -1,0 +1,349 @@
+name: Release Windows Installer
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-unsigned-msi:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore solution
+        run: dotnet restore max-sf-gp.sln
+
+      - name: Build MSI (unsigned)
+        shell: pwsh
+        run: ./scripts/build-installer.ps1 -Configuration Release
+
+      - name: Upload unsigned MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-sf-gp-msi-unsigned
+          path: Installer/bin/Release/**/*.msi
+          if-no-files-found: error
+
+  smoke-test-msi:
+    needs: build-unsigned-msi
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download unsigned MSI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: max-sf-gp-msi-unsigned
+          path: dist
+
+      - name: Resolve MSI path
+        id: msi
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path ./dist -Filter *.msi -File -Recurse |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $msi) {
+            throw "No MSI file found under dist"
+          }
+
+          "path=$($msi.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Smoke test MSI install and uninstall
+        uses: ./.github/actions/msi-smoke-test
+        with:
+          msi-path: ${{ steps.msi.outputs.path }}
+          test-data-prefix: smoke
+
+  upgrade-smoke-test:
+    needs: build-unsigned-msi
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download current MSI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: max-sf-gp-msi-unsigned
+          path: dist/current
+
+      - name: Resolve current MSI path
+        id: current_msi
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path ./dist/current -Filter *.msi -File -Recurse |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $msi) {
+            throw "No current MSI file found under dist/current"
+          }
+
+          "path=$($msi.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Download previous release MSI (if available)
+        id: previous_msi
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GITHUB_TOKEN"
+            Accept = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $repo = "${{ github.repository }}"
+          $currentTag = "${{ github.ref_name }}"
+          $releases = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$repo/releases?per_page=30" -Headers $headers
+
+          $previousRelease = $releases |
+            Where-Object { $_.tag_name -ne $currentTag -and -not $_.draft } |
+            Sort-Object published_at -Descending |
+            Select-Object -First 1
+
+          if (-not $previousRelease) {
+            Write-Host "No previous release found. Skipping upgrade smoke test."
+            "found=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          $asset = $previousRelease.assets | Where-Object { $_.name -like "*.msi" } | Select-Object -First 1
+          if (-not $asset) {
+            Write-Host "Previous release has no MSI asset. Skipping upgrade smoke test."
+            "found=false" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+            exit 0
+          }
+
+          New-Item -ItemType Directory -Force -Path ./dist/previous | Out-Null
+          $downloadHeaders = @{
+            Authorization = "Bearer $env:GITHUB_TOKEN"
+            Accept = "application/octet-stream"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $outPath = Join-Path (Resolve-Path ./dist/previous) $asset.name
+          Invoke-WebRequest -Uri $asset.url -Headers $downloadHeaders -OutFile $outPath
+
+          "found=true" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "path=$outPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Install previous MSI (keep installed)
+        if: ${{ steps.previous_msi.outputs.found == 'true' }}
+        uses: ./.github/actions/msi-smoke-test
+        with:
+          msi-path: ${{ steps.previous_msi.outputs.path }}
+          test-data-prefix: upgrade-prev
+          skip-uninstall: "true"
+
+      - name: Upgrade to current MSI and validate cleanup
+        if: ${{ steps.previous_msi.outputs.found == 'true' }}
+        uses: ./.github/actions/msi-smoke-test
+        with:
+          msi-path: ${{ steps.current_msi.outputs.path }}
+          test-data-prefix: upgrade
+
+      - name: Note skipped upgrade smoke test
+        if: ${{ steps.previous_msi.outputs.found != 'true' }}
+        shell: pwsh
+        run: Write-Host "Upgrade smoke test skipped because no previous release MSI was available."
+
+  publish-unsigned-release:
+    if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 == '' }}
+    needs:
+      - smoke-test-msi
+      - upgrade-smoke-test
+    runs-on: windows-latest
+
+    steps:
+      - name: Download unsigned MSI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: max-sf-gp-msi-unsigned
+          path: dist
+
+      - name: Resolve MSI path
+        id: msi
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path ./dist -Filter *.msi -File -Recurse |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $msi) {
+            throw "No MSI file found under dist"
+          }
+
+          "path=$($msi.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Create or update GitHub release (unsigned)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.msi.outputs.path }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  sign-and-publish-release:
+    if: ${{ secrets.WIN_CERT_THUMBPRINT != '' || secrets.WIN_CERT_PFX_BASE64 != '' }}
+    needs:
+      - smoke-test-msi
+      - upgrade-smoke-test
+    runs-on: windows-latest
+    environment: production-signing
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download unsigned MSI artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: max-sf-gp-msi-unsigned
+          path: dist
+
+      - name: Resolve MSI path
+        id: msi
+        shell: pwsh
+        run: |
+          $msi = Get-ChildItem -Path ./dist -Filter *.msi -File -Recurse |
+            Sort-Object LastWriteTime -Descending |
+            Select-Object -First 1
+
+          if (-not $msi) {
+            throw "No MSI file found under dist"
+          }
+
+          "path=$($msi.FullName)" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Sign MSI with cert store thumbprint
+        if: ${{ secrets.WIN_CERT_THUMBPRINT != '' }}
+        shell: pwsh
+        run: |
+          ./scripts/sign-msi.ps1 `
+            -MsiPath "${{ steps.msi.outputs.path }}" `
+            -CertificateThumbprint "${{ secrets.WIN_CERT_THUMBPRINT }}"
+
+      - name: Decode signing certificate (PFX)
+        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 != '' }}
+        shell: pwsh
+        run: |
+          [IO.File]::WriteAllBytes(
+            "$env:RUNNER_TEMP\codesign.pfx",
+            [Convert]::FromBase64String("${{ secrets.WIN_CERT_PFX_BASE64 }}")
+          )
+
+      - name: Sign MSI with PFX
+        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 != '' }}
+        shell: pwsh
+        run: |
+          ./scripts/sign-msi.ps1 `
+            -MsiPath "${{ steps.msi.outputs.path }}" `
+            -CertificatePath "$env:RUNNER_TEMP\codesign.pfx" `
+            -CertificatePassword "${{ secrets.WIN_CERT_PFX_PASSWORD }}"
+
+      - name: Verify MSI Authenticode signature
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature -FilePath "${{ steps.msi.outputs.path }}"
+
+          if ($signature.Status -ne 'Valid') {
+            throw "MSI signature validation failed. Status: $($signature.Status)"
+          }
+
+          if ($signature.SignerCertificate -eq $null) {
+            throw "MSI signature validation failed. Signer certificate was not found."
+          }
+
+          Write-Host "Signature status: $($signature.Status)"
+          Write-Host "Signer subject: $($signature.SignerCertificate.Subject)"
+          Write-Host "Signer thumbprint: $($signature.SignerCertificate.Thumbprint)"
+
+      - name: Create or update GitHub release (signed)
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.msi.outputs.path }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+
+  verify-published-release:
+    needs:
+      - publish-unsigned-release
+      - sign-and-publish-release
+    if: ${{ always() && (needs.publish-unsigned-release.result == 'success' || needs.sign-and-publish-release.result == 'success') }}
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download MSI asset from current release tag
+        id: release_msi
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          $headers = @{
+            Authorization = "Bearer $env:GITHUB_TOKEN"
+            Accept = "application/vnd.github+json"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $repo = "${{ github.repository }}"
+          $tag = "${{ github.ref_name }}"
+          $release = Invoke-RestMethod -Method Get -Uri "https://api.github.com/repos/$repo/releases/tags/$tag" -Headers $headers
+          $asset = $release.assets | Where-Object { $_.name -like "*.msi" } | Select-Object -First 1
+
+          if (-not $asset) {
+            throw "No MSI asset found in release for tag $tag"
+          }
+
+          New-Item -ItemType Directory -Force -Path ./dist/release | Out-Null
+          $downloadHeaders = @{
+            Authorization = "Bearer $env:GITHUB_TOKEN"
+            Accept = "application/octet-stream"
+            "X-GitHub-Api-Version" = "2022-11-28"
+          }
+
+          $outPath = Join-Path (Resolve-Path ./dist/release) $asset.name
+          Invoke-WebRequest -Uri $asset.url -Headers $downloadHeaders -OutFile $outPath
+
+          "path=$outPath" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Verify Authenticode signature for signed release
+        if: ${{ needs.sign-and-publish-release.result == 'success' }}
+        shell: pwsh
+        run: |
+          $signature = Get-AuthenticodeSignature -FilePath "${{ steps.release_msi.outputs.path }}"
+
+          if ($signature.Status -ne 'Valid') {
+            throw "Published MSI signature validation failed. Status: $($signature.Status)"
+          }
+
+          if ($signature.SignerCertificate -eq $null) {
+            throw "Published MSI signature validation failed. Signer certificate was not found."
+          }
+
+          Write-Host "Published signature status: $($signature.Status)"
+          Write-Host "Published signer subject: $($signature.SignerCertificate.Subject)"
+
+      - name: Smoke test published MSI install and uninstall
+        uses: ./.github/actions/msi-smoke-test
+        with:
+          msi-path: ${{ steps.release_msi.outputs.path }}
+          test-data-prefix: release

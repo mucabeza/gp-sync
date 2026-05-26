@@ -1,0 +1,66 @@
+name: Build Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore solution
+        run: dotnet restore max-sf-gp.sln
+
+      - name: Build MSI (unsigned)
+        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 == '' }}
+        shell: pwsh
+        run: ./scripts/build-installer.ps1 -Configuration Release
+
+      - name: Build MSI (signed with cert store thumbprint)
+        if: ${{ secrets.WIN_CERT_THUMBPRINT != '' }}
+        shell: pwsh
+        run: |
+          ./scripts/build-installer.ps1 `
+            -Configuration Release `
+            -SignMsi `
+            -CertificateThumbprint "${{ secrets.WIN_CERT_THUMBPRINT }}"
+
+      - name: Decode signing certificate (PFX)
+        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 != '' }}
+        shell: pwsh
+        run: |
+          [IO.File]::WriteAllBytes(
+            "$env:RUNNER_TEMP\codesign.pfx",
+            [Convert]::FromBase64String("${{ secrets.WIN_CERT_PFX_BASE64 }}")
+          )
+
+      - name: Build MSI (signed with PFX)
+        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 != '' }}
+        shell: pwsh
+        run: |
+          ./scripts/build-installer.ps1 `
+            -Configuration Release `
+            -SignMsi `
+            -CertificatePath "$env:RUNNER_TEMP\codesign.pfx" `
+            -CertificatePassword "${{ secrets.WIN_CERT_PFX_PASSWORD }}"
+
+      - name: Upload MSI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: max-sf-gp-msi
+          path: Installer/bin/Release/**/*.msi
+          if-no-files-found: error

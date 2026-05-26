@@ -1,0 +1,21 @@
+<Project Sdk="WixToolset.Sdk/4.0.5">
+  <PropertyGroup>
+    <OutputName>MaxSfGpSync</OutputName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Heat" Version="4.0.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <HarvestDirectory Include="..\publish\win-x64">
+      <ComponentGroupName>AppFiles</ComponentGroupName>
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+    </HarvestDirectory>
+  </ItemGroup>
+
+  <Target Name="PublishApplication" BeforeTargets="Build">
+    <Exec Command='dotnet publish "$(MSBuildThisFileDirectory)..\SalesforceDynamicsGpIntegration.csproj" -c Release -p:PublishProfile=WinX64FrameworkDependent' />
+  </Target>
+</Project>

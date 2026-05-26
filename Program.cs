@@ -66,6 +66,8 @@ namespace SalesforceDynamicsGPIntegration
                 .SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .AddInMemoryCollection(decoded)
+                // Enables secure overrides like MAXSFGP_Salesforce__ClientSecret at install/runtime.
+                .AddEnvironmentVariables(prefix: "MAXSFGP_")
                 .Build();
 
             var logger = new Logger(config);
