@@ -4,6 +4,7 @@
     Name="MAX Salesforce GP Sync"
     Manufacturer="MAX"
     Version="1.0.0"
+    Platform="x64"
     UpgradeCode="B4CF8014-C67F-4B64-8A44-2CB7B320D5DB"
     Language="1033"
     Scope="perMachine">
@@ -64,7 +65,7 @@
 
         <Control Id="Back" Type="PushButton" X="180" Y="268" Width="56" Height="17" Text="Back" Disabled="yes" />
         <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Text="Next">
-          <Publish Event="EndDialog" Value="Return" Condition="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;" />
+          <Publish Event="EndDialog" Value="Return" />
         </Control>
         <Control Id="Cancel" Type="PushButton" X="304" Y="268" Width="56" Height="17" Cancel="yes" Text="Cancel">
           <Publish Event="EndDialog" Value="Exit" />
@@ -105,7 +106,7 @@
 
   <Fragment>
     <ComponentGroup Id="RuntimeConfig" Directory="INSTALLFOLDER">
-      <Component Id="RuntimeConfigEnv" Guid="*">
+      <Component Id="RuntimeConfigEnv" Guid="*" Bitness="always64">
         <Environment
           Id="EnvDynamicsGpConnection"
           Action="set"

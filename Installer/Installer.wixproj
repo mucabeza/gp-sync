@@ -1,6 +1,7 @@
 <Project Sdk="WixToolset.Sdk/4.0.5">
   <PropertyGroup>
     <OutputName>MaxSfGpSync</OutputName>
+    <InstallerPlatform>x64</InstallerPlatform>
     <PublishOutputDir>$(MSBuildThisFileDirectory)..\publish\win-x64</PublishOutputDir>
     <DefineConstants>$(DefineConstants);PublishOutputDir=$(PublishOutputDir)</DefineConstants>
   </PropertyGroup>
