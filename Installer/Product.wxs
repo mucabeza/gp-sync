@@ -13,13 +13,13 @@
 
     <MediaTemplate EmbedCab="yes" />
 
-    <Property Id="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP" Value="" Secure="yes" Hidden="yes" />
-    <Property Id="MAXSFGP_SALESFORCE__LOGINURL" Value="" Secure="yes" />
-    <Property Id="MAXSFGP_SALESFORCE__CLIENTID" Value="" Secure="yes" Hidden="yes" />
-    <Property Id="MAXSFGP_SALESFORCE__CLIENTSECRET" Value="" Secure="yes" Hidden="yes" />
-    <Property Id="MAXSFGP_SALESFORCE__USERNAME" Value="" Secure="yes" Hidden="yes" />
-    <Property Id="MAXSFGP_SALESFORCE__PASSWORD" Value="" Secure="yes" Hidden="yes" />
-    <Property Id="MAXSFGP_SALESFORCE__SECURITYTOKEN" Value="" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__LOGINURL" Secure="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__CLIENTID" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__CLIENTSECRET" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__USERNAME" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__PASSWORD" Secure="yes" Hidden="yes" />
+    <Property Id="MAXSFGP_SALESFORCE__SECURITYTOKEN" Secure="yes" Hidden="yes" />
     <Property Id="MAXSFGP_TASK_NAME" Value="MaxSfGpSync" />
     <Property Id="DOTNET_X64_INSTALL_LOCATION">
       <RegistrySearch
@@ -62,12 +62,12 @@
 
         <Control Id="HintText" Type="Text" X="15" Y="182" Width="340" Height="28" Text="These values are stored as machine-level MAXSFGP_* environment variables for the installed application." />
         <Control Id="ValidationHint" Type="Text" X="15" Y="214" Width="340" Height="24" Hidden="yes" Text="All fields are required to continue. Fill every value before clicking Next.">
-          <ShowCondition>MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP = &quot;&quot; OR MAXSFGP_SALESFORCE__LOGINURL = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTID = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTSECRET = &quot;&quot; OR MAXSFGP_SALESFORCE__USERNAME = &quot;&quot; OR MAXSFGP_SALESFORCE__PASSWORD = &quot;&quot; OR MAXSFGP_SALESFORCE__SECURITYTOKEN = &quot;&quot;</ShowCondition>
+          <Condition Action="show">MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP = &quot;&quot; OR MAXSFGP_SALESFORCE__LOGINURL = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTID = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTSECRET = &quot;&quot; OR MAXSFGP_SALESFORCE__USERNAME = &quot;&quot; OR MAXSFGP_SALESFORCE__PASSWORD = &quot;&quot; OR MAXSFGP_SALESFORCE__SECURITYTOKEN = &quot;&quot;</Condition>
         </Control>
 
         <Control Id="Back" Type="PushButton" X="180" Y="268" Width="56" Height="17" Text="Back" Disabled="yes" />
         <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Disabled="yes" Text="Next">
-          <EnableCondition>MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;</EnableCondition>
+          <Condition Action="enable">MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;</Condition>
           <Publish Event="EndDialog" Value="Return" />
         </Control>
         <Control Id="Cancel" Type="PushButton" X="304" Y="268" Width="56" Height="17" Cancel="yes" Text="Cancel">
