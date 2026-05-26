@@ -64,7 +64,6 @@
 
         <Control Id="Back" Type="PushButton" X="180" Y="268" Width="56" Height="17" Text="Back" Disabled="yes" />
         <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Text="Next">
-          <Publish Event="SpawnDialog" Value="ErrorDlg" Condition="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP = &quot;&quot; OR MAXSFGP_SALESFORCE__LOGINURL = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTID = &quot;&quot; OR MAXSFGP_SALESFORCE__CLIENTSECRET = &quot;&quot; OR MAXSFGP_SALESFORCE__USERNAME = &quot;&quot; OR MAXSFGP_SALESFORCE__PASSWORD = &quot;&quot; OR MAXSFGP_SALESFORCE__SECURITYTOKEN = &quot;&quot;" />
           <Publish Event="EndDialog" Value="Return" Condition="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__LOGINURL &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTID &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__CLIENTSECRET &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__USERNAME &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__PASSWORD &lt;&gt; &quot;&quot; AND MAXSFGP_SALESFORCE__SECURITYTOKEN &lt;&gt; &quot;&quot;" />
         </Control>
         <Control Id="Cancel" Type="PushButton" X="304" Y="268" Width="56" Height="17" Cancel="yes" Text="Cancel">
