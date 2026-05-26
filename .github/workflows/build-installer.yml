@@ -12,6 +12,10 @@ permissions:
 jobs:
   build-installer:
     runs-on: windows-latest
+    env:
+      WIN_CERT_THUMBPRINT: ${{ secrets.WIN_CERT_THUMBPRINT }}
+      WIN_CERT_PFX_BASE64: ${{ secrets.WIN_CERT_PFX_BASE64 }}
+      WIN_CERT_PFX_PASSWORD: ${{ secrets.WIN_CERT_PFX_PASSWORD }}
 
     steps:
       - name: Checkout
@@ -26,37 +30,37 @@ jobs:
         run: dotnet restore max-sf-gp.sln
 
       - name: Build MSI (unsigned)
-        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 == '' }}
+        if: ${{ env.WIN_CERT_THUMBPRINT == '' && env.WIN_CERT_PFX_BASE64 == '' }}
         shell: pwsh
         run: ./scripts/build-installer.ps1 -Configuration Release
 
       - name: Build MSI (signed with cert store thumbprint)
-        if: ${{ secrets.WIN_CERT_THUMBPRINT != '' }}
+        if: ${{ env.WIN_CERT_THUMBPRINT != '' }}
         shell: pwsh
         run: |
           ./scripts/build-installer.ps1 `
             -Configuration Release `
             -SignMsi `
-            -CertificateThumbprint "${{ secrets.WIN_CERT_THUMBPRINT }}"
+            -CertificateThumbprint "${{ env.WIN_CERT_THUMBPRINT }}"
 
       - name: Decode signing certificate (PFX)
-        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 != '' }}
+        if: ${{ env.WIN_CERT_THUMBPRINT == '' && env.WIN_CERT_PFX_BASE64 != '' }}
         shell: pwsh
         run: |
           [IO.File]::WriteAllBytes(
             "$env:RUNNER_TEMP\codesign.pfx",
-            [Convert]::FromBase64String("${{ secrets.WIN_CERT_PFX_BASE64 }}")
+            [Convert]::FromBase64String("${{ env.WIN_CERT_PFX_BASE64 }}")
           )
 
       - name: Build MSI (signed with PFX)
-        if: ${{ secrets.WIN_CERT_THUMBPRINT == '' && secrets.WIN_CERT_PFX_BASE64 != '' }}
+        if: ${{ env.WIN_CERT_THUMBPRINT == '' && env.WIN_CERT_PFX_BASE64 != '' }}
         shell: pwsh
         run: |
           ./scripts/build-installer.ps1 `
             -Configuration Release `
             -SignMsi `
             -CertificatePath "$env:RUNNER_TEMP\codesign.pfx" `
-            -CertificatePassword "${{ secrets.WIN_CERT_PFX_PASSWORD }}"
+            -CertificatePassword "${{ env.WIN_CERT_PFX_PASSWORD }}"
 
       - name: Upload MSI artifact
         uses: actions/upload-artifact@v4
