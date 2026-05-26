@@ -1,6 +1,8 @@
 <Project Sdk="WixToolset.Sdk/4.0.5">
   <PropertyGroup>
     <OutputName>MaxSfGpSync</OutputName>
+    <PublishOutputDir>$(MSBuildThisFileDirectory)..\publish\win-x64</PublishOutputDir>
+    <DefineConstants>$(DefineConstants);PublishOutputDir=$(PublishOutputDir)</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -8,9 +10,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <HarvestDirectory Include="..\publish\win-x64">
+    <HarvestDirectory Include="$(PublishOutputDir)">
       <ComponentGroupName>AppFiles</ComponentGroupName>
       <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <PreprocessorVariable>var.PublishOutputDir</PreprocessorVariable>
       <SuppressRootDirectory>true</SuppressRootDirectory>
     </HarvestDirectory>
   </ItemGroup>
