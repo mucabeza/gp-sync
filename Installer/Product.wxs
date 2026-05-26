@@ -4,7 +4,6 @@
     Name="MAX Salesforce GP Sync"
     Manufacturer="MAX"
     Version="1.0.0"
-    Platform="x64"
     UpgradeCode="B4CF8014-C67F-4B64-8A44-2CB7B320D5DB"
     Language="1033"
     Scope="perMachine">

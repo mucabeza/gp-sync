@@ -2,6 +2,7 @@
   <PropertyGroup>
     <OutputName>MaxSfGpSync</OutputName>
     <InstallerPlatform>x64</InstallerPlatform>
+    <SuppressIces>ICE80</SuppressIces>
     <PublishOutputDir>$(MSBuildThisFileDirectory)..\publish\win-x64</PublishOutputDir>
     <DefineConstants>$(DefineConstants);PublishOutputDir=$(PublishOutputDir)</DefineConstants>
   </PropertyGroup>
