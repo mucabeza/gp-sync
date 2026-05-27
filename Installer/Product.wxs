@@ -92,16 +92,16 @@
 
     <CustomAction
       Id="CreateStartupTask"
-      Directory="SystemFolder"
-      ExeCommand='cmd.exe /c schtasks /Create /TN "[MAXSFGP_TASK_NAME]" /SC ONLOGON /TR "&quot;[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe&quot;" /RL HIGHEST /F'
+      Directory="System64Folder"
+      ExeCommand='schtasks.exe /Create /TN "[MAXSFGP_TASK_NAME]" /SC DAILY /ST 00:10 /TR "[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe" /RU SYSTEM /RL HIGHEST /F'
       Execute="immediate"
       Return="check"
       Impersonate="no" />
 
     <CustomAction
       Id="DeleteStartupTask"
-      Directory="SystemFolder"
-      ExeCommand='cmd.exe /c schtasks /Delete /TN "[MAXSFGP_TASK_NAME]" /F'
+      Directory="System64Folder"
+      ExeCommand='schtasks.exe /Delete /TN "[MAXSFGP_TASK_NAME]" /F'
       Execute="immediate"
       Return="ignore"
       Impersonate="no" />
