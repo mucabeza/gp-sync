@@ -30,9 +30,18 @@
         Bitness="always64" />
     </Property>
 
+    <Property Id="DOTNET_X64_SHAREDHOST_VERSION">
+      <RegistrySearch
+        Root="HKLM"
+        Key="SOFTWARE\dotnet\Setup\InstalledVersions\x64\sharedhost"
+        Name="Version"
+        Type="raw"
+        Bitness="always64" />
+    </Property>
+
     <Launch
-      Condition="Installed OR DOTNET_X64_INSTALL_LOCATION"
-      Message="This application requires the x64 .NET runtime. Install the .NET Core 3.1 x64 runtime (or compatible host runtime) and run setup again." />
+      Condition="Installed OR DOTNET_X64_INSTALL_LOCATION OR DOTNET_X64_SHAREDHOST_VERSION"
+      Message="This application requires the x64 .NET runtime or SDK. Install the .NET Core 3.1 x64 runtime (or compatible host runtime) and run setup again." />
 
     <StandardDirectory Id="ProgramFiles64Folder">
       <Directory Id="INSTALLFOLDER" Name="MaxSfGpSync" />
