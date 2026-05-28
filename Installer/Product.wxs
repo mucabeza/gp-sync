@@ -94,7 +94,7 @@
 
       <InstallUISequence>
         <Show Dialog="MaxConfigDialog" Before="ExecuteAction" Condition="NOT Installed" />
-        <Show Dialog="InstallSuccessDialog" Before="ExitDialog" Condition="NOT Installed AND NOT REMOVE" />
+        <Show Dialog="InstallSuccessDialog" After="ExecuteAction" Condition="NOT Installed AND NOT REMOVE" />
       </InstallUISequence>
     </UI>
 
