@@ -44,7 +44,9 @@
       Message="This application requires the x64 .NET runtime or SDK. Install the .NET Core 3.1 x64 runtime (or compatible host runtime) and run setup again." />
 
     <StandardDirectory Id="ProgramFiles64Folder">
-      <Directory Id="INSTALLFOLDER" Name="MaxSfGpSync" />
+      <Directory Id="SKYPLANNERFOLDER" Name="SkyPlanner">
+        <Directory Id="INSTALLFOLDER" Name="GpSalesforceSync" />
+      </Directory>
     </StandardDirectory>
 
     <UI>
