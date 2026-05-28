@@ -56,22 +56,23 @@
         <Control Id="ConnLabel" Type="Text" X="15" Y="34" Width="340" Height="12" Text="Dynamics GP connection string" />
         <Control Id="ConnEdit" Type="Edit" X="15" Y="47" Width="340" Height="18" Property="MAXSFGP_CONNECTIONSTRINGS__DYNAMICSGP" />
 
-        <Control Id="LoginLabel" Type="Text" X="15" Y="69" Width="170" Height="12" Text="Salesforce Login URL" />
-        <Control Id="ClientIdLabel" Type="Text" X="195" Y="69" Width="160" Height="12" Text="Salesforce Client ID" />
-        <Control Id="LoginEdit" Type="Edit" X="15" Y="82" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__LOGINURL" />
-        <Control Id="ClientIdEdit" Type="Edit" X="195" Y="82" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__CLIENTID" />
+        <Control Id="LoginLabel" Type="Text" X="15" Y="69" Width="340" Height="12" Text="Salesforce Login URL" />
+        <Control Id="LoginEdit" Type="Edit" X="15" Y="82" Width="340" Height="18" Property="MAXSFGP_SALESFORCE__LOGINURL" />
 
         <Control Id="ClientSecretLabel" Type="Text" X="15" Y="104" Width="170" Height="12" Text="Salesforce Client Secret" />
-        <Control Id="UsernameLabel" Type="Text" X="195" Y="104" Width="160" Height="12" Text="Salesforce Username" />
+        <Control Id="ClientIdLabel" Type="Text" X="195" Y="104" Width="160" Height="12" Text="Salesforce Client ID" />
         <Control Id="ClientSecretEdit" Type="Edit" X="15" Y="117" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__CLIENTSECRET" Password="yes" />
-        <Control Id="UsernameEdit" Type="Edit" X="195" Y="117" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__USERNAME" />
+        <Control Id="ClientIdEdit" Type="Edit" X="195" Y="117" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__CLIENTID" />
 
-        <Control Id="PasswordLabel" Type="Text" X="15" Y="139" Width="170" Height="12" Text="Salesforce Password" />
-        <Control Id="TokenLabel" Type="Text" X="195" Y="139" Width="160" Height="12" Text="Salesforce Security Token" />
-        <Control Id="PasswordEdit" Type="Edit" X="15" Y="152" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__PASSWORD" Password="yes" />
-        <Control Id="TokenEdit" Type="Edit" X="195" Y="152" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__SECURITYTOKEN" Password="yes" />
+        <Control Id="UsernameLabel" Type="Text" X="15" Y="139" Width="170" Height="12" Text="Salesforce Username" />
+        <Control Id="PasswordLabel" Type="Text" X="195" Y="139" Width="160" Height="12" Text="Salesforce Password" />
+        <Control Id="UsernameEdit" Type="Edit" X="15" Y="152" Width="170" Height="18" Property="MAXSFGP_SALESFORCE__USERNAME" />
+        <Control Id="PasswordEdit" Type="Edit" X="195" Y="152" Width="160" Height="18" Property="MAXSFGP_SALESFORCE__PASSWORD" Password="yes" />
 
-        <Control Id="HintText" Type="Text" X="15" Y="182" Width="340" Height="50" Text="These values are stored as machine-level MAXSFGP_* environment variables for the installed application. All fields are required before continuing." />
+        <Control Id="TokenLabel" Type="Text" X="15" Y="174" Width="340" Height="12" Text="Salesforce Security Token" />
+        <Control Id="TokenEdit" Type="Edit" X="15" Y="187" Width="340" Height="18" Property="MAXSFGP_SALESFORCE__SECURITYTOKEN" Password="yes" />
+
+        <Control Id="HintText" Type="Text" X="15" Y="212" Width="340" Height="35" Text="These values are stored as machine-level MAXSFGP_* environment variables for the installed application. All fields are required before continuing." />
 
         <Control Id="Back" Type="PushButton" X="180" Y="268" Width="56" Height="17" Text="Back" Disabled="yes" />
         <Control Id="Next" Type="PushButton" X="242" Y="268" Width="56" Height="17" Default="yes" Text="Next">
@@ -82,8 +83,18 @@
         </Control>
       </Dialog>
 
+      <Dialog Id="InstallSuccessDialog" Width="370" Height="180" Title="MAX Salesforce GP Sync Setup">
+        <Control Id="SuccessTitle" Type="Text" X="15" Y="20" Width="340" Height="18" NoPrefix="yes" Text="Installation Complete" />
+        <Control Id="SuccessMessage" Type="Text" X="15" Y="52" Width="340" Height="40" Text="The installation was successful." />
+
+        <Control Id="Finish" Type="PushButton" X="304" Y="148" Width="56" Height="17" Default="yes" Cancel="yes" Text="Finish">
+          <Publish Event="EndDialog" Value="Exit" />
+        </Control>
+      </Dialog>
+
       <InstallUISequence>
         <Show Dialog="MaxConfigDialog" Before="ExecuteAction" Condition="NOT Installed" />
+        <Show Dialog="InstallSuccessDialog" Before="ExitDialog" Condition="NOT Installed AND NOT REMOVE" />
       </InstallUISequence>
     </UI>
 
