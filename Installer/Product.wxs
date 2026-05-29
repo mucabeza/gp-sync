@@ -107,13 +107,17 @@
       Id="CreateStartupTask"
       Directory="System64Folder"
       ExeCommand='schtasks.exe /Create /TN "\[MAXSFGP_TASK_NAME]" /SC DAILY /ST 00:10 /TR "[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe" /RU SYSTEM /F'
-      Return="check" />
+      Execute="deferred"
+      Return="check"
+      Impersonate="no" />
 
     <CustomAction
       Id="DeleteStartupTask"
       Directory="System64Folder"
       ExeCommand='schtasks.exe /Delete /TN "\[MAXSFGP_TASK_NAME]" /F'
-      Return="ignore" />
+      Execute="deferred"
+      Return="ignore"
+      Impersonate="no" />
 
     <InstallExecuteSequence>
       <Custom Action="CreateStartupTask" After="InstallFiles" Condition="NOT REMOVE" />
