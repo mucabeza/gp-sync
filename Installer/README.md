@@ -9,7 +9,7 @@ This folder contains the initial WiX v4 setup project for building a Windows x64
 - Supports major upgrade behavior by using a fixed `UpgradeCode`.
 - Includes an operator script at `scripts/configure-install.ps1` to prompt for required settings and optionally register startup execution.
 - Uses WiX Heat harvesting, which requires running the installer build on Windows.
-- Installs under `Program Files\\MaxSfGpSync`.
+- Installs under `Program Files\\SkyPlanner\\GpSalesforceSync`.
 - Supports MSI property injection for runtime secrets via machine-level environment variables consumed by the app (`MAXSFGP_` prefix).
 - Registers a startup scheduled task (`MaxSfGpSync`) during install and removes it during uninstall.
 - Blocks installation when the x64 .NET runtime host is not present.

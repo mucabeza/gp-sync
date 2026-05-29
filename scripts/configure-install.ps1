@@ -1,5 +1,5 @@
 param(
-    [string]$InstallPath = "$env:ProgramFiles\MaxSfGpSync",
+    [string]$InstallPath = "$env:ProgramFiles\SkyPlanner\GpSalesforceSync",
     [string]$TaskName = "MaxSfGpSync",
     [switch]$RegisterStartup
 )
@@ -49,7 +49,7 @@ if ($RegisterStartup) {
     $quotedExe = '"' + $exePath + '"'
     $createTaskArgs = @(
         "/Create",
-        "/TN", $TaskName,
+        "/TN", "\$TaskName",
         "/SC", "ONLOGON",
         "/TR", $quotedExe,
         "/RL", "HIGHEST",
