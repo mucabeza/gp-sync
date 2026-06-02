@@ -90,7 +90,7 @@ namespace SalesforceDynamicsGPIntegration
             var parameters = new List<SqlParameter>{
                 new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = this.UserId },
                 new SqlParameter("@StartDate", SqlDbType.Date) { Value = this.StartDate },
-                new SqlParameter("@EndDate", SqlDbType.Date) { Value = this.EndDate }
+                new SqlParameter("@EndDate", SqlDbType.Date) { Value = this.EndDate.AddDays(1) }
             };
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {
