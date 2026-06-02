@@ -106,7 +106,7 @@
     <CustomAction
       Id="CreateStartupTask"
       Directory="System64Folder"
-      ExeCommand='schtasks.exe /Create /TN "\[MAXSFGP_TASK_NAME]" /SC DAILY /ST 00:10 /TR ""[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe"" /RU SYSTEM /F'
+      ExeCommand='powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command "Register-ScheduledTask -TaskName MaxSfGpSync -Action (New-ScheduledTaskAction -Execute &apos;[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe&apos;) -Trigger (New-ScheduledTaskTrigger -Daily -At &apos;00:10&apos;) -Principal (New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest) -Force"'
       Execute="deferred"
       Return="check"
       Impersonate="no" />
@@ -114,7 +114,7 @@
     <CustomAction
       Id="DeleteStartupTask"
       Directory="System64Folder"
-      ExeCommand='schtasks.exe /Delete /TN "\[MAXSFGP_TASK_NAME]" /F'
+      ExeCommand='powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command "Unregister-ScheduledTask -TaskName MaxSfGpSync -Confirm:$false"'
       Execute="deferred"
       Return="ignore"
       Impersonate="no" />
