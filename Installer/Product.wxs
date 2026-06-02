@@ -106,7 +106,7 @@
     <CustomAction
       Id="CreateStartupTask"
       Directory="System64Folder"
-      ExeCommand='schtasks.exe /Create /TN "\[MAXSFGP_TASK_NAME]" /SC DAILY /ST 00:10 /TR \"[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe\" /RU SYSTEM /F'
+      ExeCommand='schtasks.exe /Create /TN "\[MAXSFGP_TASK_NAME]" /SC DAILY /ST 00:10 /TR ""[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe"" /RU SYSTEM /F'
       Execute="deferred"
       Return="check"
       Impersonate="no" />
