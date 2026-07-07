@@ -27,7 +27,7 @@ namespace SalesforceDynamicsGPIntegration
         {
             List<GpDataSync> gpDataSyncRequests = new List<GpDataSync>();
             string query = @"
-                    SELECT  
+                    SELECT DISTINCT 
                         H.DOCDATE  as   DocumentDate,
                             CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
@@ -121,13 +121,14 @@ namespace SalesforceDynamicsGPIntegration
                                     (RM1.SLPRSNID = (SELECT CS_SalesRep FROM CSUSRep WHERE CS_User = @userid))
                                 )
                             )
-                     AND [DOCDATE]>= @StartDate AND [DOCDATE]< @EndDate";
+                      AND (([DOCDATE]>= @StartDate AND [DOCDATE]< @EndDate) OR  (L.DEX_ROW_TS >= @StartDate AND L.DEX_ROW_TS < @EndDate))";
 
             // Add conditional SLPRSNID filter
             string filters = syncDataSettings.GetFilters();
             query += filters;
             query += " ORDER BY H.DOCDATE," +
-            " CASE ISNULL(SH.CS_Shipto, 1)  WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') END ASC " +
+            " CASE ISNULL(SH.CS_Shipto, 1)  WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') END ASC, " +
+            "L.CMPNTSEQ  ASC, 	L.LNITMSEQ ASC , 	H.SOPNUMBE ASC " +
             " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -259,7 +260,7 @@ namespace SalesforceDynamicsGPIntegration
                                     (RM1.SLPRSNID = (SELECT CS_SalesRep FROM CSUSRep WHERE CS_User = @userid))
                                 )
                             )
-                     AND [DOCDATE]>= @StartDate AND [DOCDATE]< @EndDate";
+                     AND (([DOCDATE]>= @StartDate AND [DOCDATE]< @EndDate) OR  (L.DEX_ROW_TS >= @StartDate AND L.DEX_ROW_TS < @EndDate))";
 
             // Add conditional SLPRSNID filter
             string filters = syncDataSettings.GetFilters();
