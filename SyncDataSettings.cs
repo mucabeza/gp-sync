@@ -71,7 +71,7 @@ namespace SalesforceDynamicsGPIntegration
             }
             if (!string.IsNullOrEmpty(this.SalesPersonId) && this.SalesPersonId.ToUpper() != ALL_VALUES)
             {
-                filters += " AND (CASE ISNULL(SH. CS_Shipto, 1) WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')  END) = @SalesPersonId";
+                filters += " AND (CASE ISNULL(SH. CS_Shipto, 1) WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID) END) = @SalesPersonId";
             }
             if (!string.IsNullOrEmpty(this.CustomerNumber) && this.CustomerNumber.ToUpper() != ALL_VALUES)
             {

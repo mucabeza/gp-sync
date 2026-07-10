@@ -31,7 +31,8 @@ namespace SalesforceDynamicsGPIntegration
                         H.DOCDATE  as   DocumentDate,
                             CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
                             END
                          as   SalesPersonID,
                         LTRIM(RTRIM(SAL.SPRSNSLN))+', '+LTRIM(RTRIM(SAL.SLPRSNFN)) as SalesPerson,
@@ -83,21 +84,28 @@ namespace SalesforceDynamicsGPIntegration
                             ON ST_CITY.STATE = H.STATE
                             AND ST_CITY.CITY = H.CITY
                             AND LTRIM(RTRIM(ST_CITY. CITY)) <> ''
-                        LEFT JOIN  [PD].[dbo].[RM00301] SAL 
+
+                        LEFT JOIN [PD].[dbo].[CS_NASTATE] ST_NASTATE
+                            ON ST_NASTATE.STATE = H.STATE
+
+                        LEFT JOIN  [PD].[dbo].[RM00301] SAL
                         ON SAL.SLPRSNID = CASE ISNULL(SH.CS_Shipto, 1)
                             WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                            ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
                         END
 
                      WHERE 
                         CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                            END IS NOT NULL AND 
+                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
+                            END IS NOT NULL AND
                         CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                            END!='' AND  
+                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
+                            END!='' AND
                         H.SOPTYPE  IN (3,4) AND 
                         [VOIDSTTS]= 0 
                         AND L.QUANTITY <> 0
@@ -108,9 +116,10 @@ namespace SalesforceDynamicsGPIntegration
                                     (
                                         ((SELECT COUNT(*) FROM CS_SRepList(@userid)) = 0) 
                                         OR
-                                        (CASE ISNULL(SH.CS_Shipto, 1) 
-                                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) 
-                                            ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') 
+                                        (CASE ISNULL(SH.CS_Shipto, 1)
+                                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
+                                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
                                         END IN (SELECT CSSREP FROM CS_SRepList(@userid)))
                                     )
                                 )
@@ -127,7 +136,7 @@ namespace SalesforceDynamicsGPIntegration
             string filters = syncDataSettings.GetFilters();
             query += filters;
             query += " ORDER BY H.DOCDATE," +
-            " CASE ISNULL(SH.CS_Shipto, 1)  WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') END ASC, " +
+            " CASE ISNULL(SH.CS_Shipto, 1)  WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID) END ASC, " +
             "L.CMPNTSEQ  ASC, 	L.LNITMSEQ ASC , 	H.SOPNUMBE ASC " +
             " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
@@ -222,21 +231,28 @@ namespace SalesforceDynamicsGPIntegration
                             ON ST_CITY.STATE = H.STATE
                             AND ST_CITY.CITY = H.CITY
                             AND LTRIM(RTRIM(ST_CITY. CITY)) <> ''
-                        LEFT JOIN  [PD].[dbo].[RM00301] SAL 
+
+                        LEFT JOIN [PD].[dbo].[CS_NASTATE] ST_NASTATE
+                            ON ST_NASTATE.STATE = H.STATE
+
+                        LEFT JOIN  [PD].[dbo].[RM00301] SAL
                         ON SAL.SLPRSNID = CASE ISNULL(SH.CS_Shipto, 1)
                             WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                            ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
                         END
                         
                      WHERE 
                         CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                            END IS NOT NULL AND 
+                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
+                            END IS NOT NULL AND
                         CASE ISNULL(SH. CS_Shipto, 1)
                                 WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                            END!='' AND  
+                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
+                            END!='' AND
                         H.SOPTYPE  IN (3,4) AND 
                         [VOIDSTTS]= 0 
                         AND L.QUANTITY <> 0
@@ -247,9 +263,10 @@ namespace SalesforceDynamicsGPIntegration
                                     (
                                         ((SELECT COUNT(*) FROM CS_SRepList(@userid)) = 0) 
                                         OR
-                                        (CASE ISNULL(SH.CS_Shipto, 1) 
-                                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) 
-                                            ELSE COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') 
+                                        (CASE ISNULL(SH.CS_Shipto, 1)
+                                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
+                                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
+                                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
                                         END IN (SELECT CSSREP FROM CS_SRepList(@userid)))
                                     )
                                 )
