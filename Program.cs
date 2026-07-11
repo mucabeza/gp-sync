@@ -15,10 +15,7 @@ namespace SalesforceDynamicsGPIntegration
         {
             "ConnectionStrings:DynamicsGP",
             "Salesforce:ClientId",
-            "Salesforce:ClientSecret",
-            "Salesforce:Username",
-            "Salesforce:Password",
-            "Salesforce:SecurityToken"
+            "Salesforce:ClientSecret"
         };
 
         static async Task Main(string[] args)

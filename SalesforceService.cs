@@ -31,27 +31,6 @@ namespace SalesforceDynamicsGPIntegration
                 return this._syncInfo.ClientSecret;
             }
         }
-        private string _username
-        {
-            get
-            {
-                return this._syncInfo.Username;
-            }
-        }
-        private string _password
-        {
-            get
-            {
-                return this._syncInfo.Password;
-            }
-        }
-        private string _securityToken
-        {
-            get
-            {
-                return this._syncInfo.SecurityToken;
-            }
-        }
 
         private string _syncEndPointName
         {
@@ -91,11 +70,9 @@ namespace SalesforceDynamicsGPIntegration
                 var tokenEndpoint = $"{_loginUrl}/services/oauth2/token";
 
                 var content = new FormUrlEncodedContent(new[] {
-                    new KeyValuePair<string, string>("grant_type", "password"),
+                    new KeyValuePair<string, string>("grant_type", "client_credentials"),
                     new KeyValuePair<string, string>("client_id", _clientId),
-                    new KeyValuePair<string, string>("client_secret", _clientSecret),
-                    new KeyValuePair<string, string>("username", _username),
-                    new KeyValuePair<string, string>("password", _password + _securityToken)});
+                    new KeyValuePair<string, string>("client_secret", _clientSecret)});
                 // This is already set automatically, but you can be explicit:
                 content.Headers.ContentType = new MediaTypeHeaderValue("application/x-www-form-urlencoded");
                 _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -164,26 +141,10 @@ namespace SalesforceDynamicsGPIntegration
 
         private string BuildInvalidGrantHint()
         {
-            var baseHint = "Salesforce invalid_grant usually means credentials/environment mismatch. " +
-                           "Verify username, password+security token, and connected app client credentials.";
-
-            if (!string.IsNullOrWhiteSpace(_loginUrl) &&
-                _loginUrl.Contains("test.salesforce.com", StringComparison.OrdinalIgnoreCase) &&
-                !_username.Contains(".", StringComparison.Ordinal))
-            {
-                return baseHint + " Login URL is sandbox (test.salesforce.com). " +
-                       "Sandbox usernames are commonly in the format user@company.com.sandboxName.";
-            }
-
-            if (!string.IsNullOrWhiteSpace(_loginUrl) &&
-                _loginUrl.Contains("login.salesforce.com", StringComparison.OrdinalIgnoreCase) &&
-                _username.Contains(".", StringComparison.Ordinal))
-            {
-                return baseHint + " Login URL is production (login.salesforce.com). " +
-                       "If this is a sandbox user, switch to test.salesforce.com.";
-            }
-
-            return baseHint;
+            return "Salesforce invalid_grant usually means the Connected App isn't set up for the " +
+                   "Client Credentials Flow correctly. Verify: the Connected App has a 'Run As' user " +
+                   "configured under Client Credentials Flow, the client_id/client_secret are current " +
+                   "(Manage Consumer Details), and that 'Run As' user is active and not locked out.";
         }
 
         public async Task<ResponseWrapper> SyncGpDataAsync(GPRequestSync gPRequestSync)
