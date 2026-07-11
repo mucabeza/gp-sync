@@ -70,8 +70,19 @@ namespace SalesforceDynamicsGPIntegration
                             foreach (var syncDataSettings in syncDataSettingsList)
                             {
 
-                                GPDataBaseDataReader dataReader = new GPDataBaseDataReader(ConfigurationBuilder, syncDataSettings, Logger);
-                                int pages = dataReader.GetTotalPages();
+                                GPDataBaseDataReader dataReader;
+                                int pages;
+                                try
+                                {
+                                    dataReader = new GPDataBaseDataReader(ConfigurationBuilder, syncDataSettings, Logger);
+                                    pages = dataReader.GetTotalPages();
+                                }
+                                catch (GpSyncQueryValidationException queryEx)
+                                {
+                                    Logger.LogError($"GP sync query is invalid, skipping sync data setting (RecordId: {syncDataSettings.RecordId})", queryEx);
+                                    Console.WriteLine($"GP sync query is invalid, skipping sync data setting (RecordId: {syncDataSettings.RecordId}): {queryEx.Message}\n");
+                                    continue;
+                                }
                                 Logger.LogInfo($"Total pages to process: {pages}");
                                 Console.WriteLine("Record pages: " + pages + "\n");
                                 if (pages > 0)

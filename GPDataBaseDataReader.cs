@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
@@ -11,9 +13,26 @@ namespace SalesforceDynamicsGPIntegration
 {
     public class GPDataBaseDataReader
     {
+        private static readonly string[] RequiredColumns = new[]
+        {
+            "DocumentDate", "SalesPersonID", "SalesPerson", "SOPNumber", "SOPType",
+            "ComponentSequence", "LineItemSequence", "CustomerNumber", "CustomerName",
+            "BillingCity", "ItemNumber", "ItemDesc", "ItemFamily", "Qty", "Amount",
+            "ItemClassCode", "ShippingState", "ShippingCity", "ShippingZipCode"
+        };
+
+        private static readonly Regex ForbiddenKeywordsRegex = new Regex(
+            @"\b(INSERT|UPDATE|DELETE|DROP|ALTER|TRUNCATE|EXEC|EXECUTE|MERGE|GRANT|REVOKE|CREATE|xp_cmdshell|sp_executesql)\b",
+            RegexOptions.IgnoreCase);
+
+        private static readonly Regex OrderByRegex = new Regex(@"\bORDER\s+BY\b", RegexOptions.IgnoreCase);
+        private static readonly Regex OffsetRegex = new Regex(@"\bOFFSET\b", RegexOptions.IgnoreCase);
+
         private string connectionString { get; set; }
         private SyncDataSettings syncDataSettings { get; set; }
         private Logger Logger { get; set; }
+        private string coreQuery { get; set; }
+        private bool schemaValidated = false;
 
         public GPDataBaseDataReader(IConfigurationRoot configurationBuilder, SyncDataSettings syncDataSettings, Logger logger)
         {
@@ -22,123 +41,151 @@ namespace SalesforceDynamicsGPIntegration
             this.syncDataSettings = syncDataSettings;
             this.Logger = logger;
             Logger.LogInfo("Filters:" + JsonSerializer.Serialize(syncDataSettings));
+
+            string queryFilePath = configurationBuilder["GpSyncQuery:FilePath"];
+            if (string.IsNullOrWhiteSpace(queryFilePath))
+            {
+                queryFilePath = "GpSyncQuery.sql";
+            }
+            if (!Path.IsPathRooted(queryFilePath))
+            {
+                queryFilePath = Path.Combine(AppContext.BaseDirectory, queryFilePath);
+            }
+
+            this.coreQuery = LoadAndValidateQueryFile(queryFilePath);
+
+            string filters = syncDataSettings.GetFilters();
+            string assembledQuery = BuildDataQuery(filters);
+            Logger.LogInfo("Assembled GP sync query: " + assembledQuery);
         }
+
+        private string BuildDataQuery(string filters)
+        {
+            return $@"SELECT * FROM ({coreQuery}) AS Core
+                    WHERE 1=1{filters}
+                    ORDER BY DocumentDate, SalesPersonID, ComponentSequence, LineItemSequence, SOPNumber
+                    OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+        }
+
+        private string BuildCountQuery(string filters)
+        {
+            return $"SELECT COUNT(*) FROM ({coreQuery}) AS Core WHERE 1=1{filters};";
+        }
+
+        private static string StripSqlComments(string sql)
+        {
+            string noBlockComments = Regex.Replace(sql, @"/\*.*?\*/", " ", RegexOptions.Singleline);
+            string noLineComments = Regex.Replace(noBlockComments, @"--[^\r\n]*", " ");
+            return noLineComments;
+        }
+
+        private static string LoadAndValidateQueryFile(string filePath)
+        {
+            if (!File.Exists(filePath))
+            {
+                throw new GpSyncQueryValidationException($"GP sync query file not found at '{filePath}'.");
+            }
+
+            string rawQuery = File.ReadAllText(filePath);
+            if (string.IsNullOrWhiteSpace(rawQuery))
+            {
+                throw new GpSyncQueryValidationException($"GP sync query file at '{filePath}' is empty.");
+            }
+
+            string codeOnly = StripSqlComments(rawQuery).Trim();
+            var errors = new List<string>();
+
+            if (!codeOnly.StartsWith("SELECT", StringComparison.OrdinalIgnoreCase))
+            {
+                errors.Add("the query must start with a single SELECT statement.");
+            }
+            if (ForbiddenKeywordsRegex.IsMatch(codeOnly))
+            {
+                errors.Add("the query contains a disallowed keyword (only a single read-only SELECT is allowed - no INSERT/UPDATE/DELETE/DROP/ALTER/TRUNCATE/EXEC/EXECUTE/MERGE/GRANT/REVOKE/CREATE/xp_cmdshell/sp_executesql).");
+            }
+            string codeWithoutTrailingSemicolon = codeOnly.EndsWith(";") ? codeOnly.Substring(0, codeOnly.Length - 1) : codeOnly;
+            if (codeWithoutTrailingSemicolon.Contains(";"))
+            {
+                errors.Add("the query must be a single statement (no ';' allowed except optionally at the very end).");
+            }
+            if (OrderByRegex.IsMatch(codeOnly))
+            {
+                errors.Add("the query must not include ORDER BY - it is appended automatically by the application.");
+            }
+            if (OffsetRegex.IsMatch(codeOnly))
+            {
+                errors.Add("the query must not include OFFSET/FETCH - pagination is appended automatically by the application.");
+            }
+            foreach (var requiredParam in new[] { "@userid", "@StartDate", "@EndDate" })
+            {
+                if (codeOnly.IndexOf(requiredParam, StringComparison.OrdinalIgnoreCase) < 0)
+                {
+                    errors.Add($"the query is missing required parameter '{requiredParam}'.");
+                }
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new GpSyncQueryValidationException($"GP sync query file at '{filePath}' failed validation: " + string.Join(" ", errors));
+            }
+
+            string trimmedOriginal = rawQuery.TrimEnd();
+            if (trimmedOriginal.EndsWith(";"))
+            {
+                trimmedOriginal = trimmedOriginal.Substring(0, trimmedOriginal.Length - 1).TrimEnd();
+            }
+            return trimmedOriginal;
+        }
+
+        private void EnsureSchemaValidated()
+        {
+            if (schemaValidated)
+            {
+                return;
+            }
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand(coreQuery, connection))
+            {
+                command.Parameters.Add(new SqlParameter("@userid", SqlDbType.VarChar, 50) { Value = syncDataSettings.UserId });
+                command.Parameters.Add(new SqlParameter("@StartDate", SqlDbType.Date) { Value = syncDataSettings.StartDate });
+                command.Parameters.Add(new SqlParameter("@EndDate", SqlDbType.Date) { Value = syncDataSettings.EndDate.AddDays(1) });
+
+                try
+                {
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader(CommandBehavior.SchemaOnly))
+                    {
+                        var actualColumns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            actualColumns.Add(reader.GetName(i));
+                        }
+
+                        var missing = RequiredColumns.Where(c => !actualColumns.Contains(c)).ToList();
+                        if (missing.Count > 0)
+                        {
+                            throw new GpSyncQueryValidationException(
+                                "GpSyncQuery.sql is missing required output column(s): " + string.Join(", ", missing));
+                        }
+                    }
+                }
+                catch (SqlException ex)
+                {
+                    throw new GpSyncQueryValidationException("GpSyncQuery.sql failed validation against the database: " + ex.Message, ex);
+                }
+            }
+
+            schemaValidated = true;
+        }
+
         public List<GpDataSync> GetData(int pageNumber)
         {
+            EnsureSchemaValidated();
+
             List<GpDataSync> gpDataSyncRequests = new List<GpDataSync>();
-            string query = @"
-                    SELECT DISTINCT 
-                        H.DOCDATE  as   DocumentDate,
-                            CASE ISNULL(SH. CS_Shipto, 1)
-                                WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                            END
-                         as   SalesPersonID,
-                        LTRIM(RTRIM(SAL.SPRSNSLN))+', '+LTRIM(RTRIM(SAL.SLPRSNFN)) as SalesPerson,
-                        H.SOPNUMBE as   SOPNumber, 
-                        H.SOPTYPE  as   SOPType,
-                        L.CMPNTSEQ as   ComponentSequence,
-                        L.LNITMSEQ as   LineItemSequence,
-                        H.CUSTNMBR as   CustomerNumber,
-                        RM1.CUSTNAME as CustomerName,
-	                    RM1.CITY  as BillingCity,
-                        L.ITEMNMBR as   ItemNumber,
-                        L.ITEMDESC AS ItemDesc,
-	                    E.ITMCLSDC AS ItemFamily,
-                        L.QUANTITY as   Qty,
-                        L.QUANTITY * L.UNITPRCE as  Amount,
-                        I.ITMCLSCD        as ItemClassCode,
-                        H.STATE AS ShippingState,
-                        H.CITY as ShippingCity,
-                        H.ADDRESS1 as ShippingAddress,
-                        H.ZIPCODE as ShippingZipCode,
-                        H.COUNTRY  as ShippingCountry
-             
-                    FROM [PD].[dbo].[SOP30300] L
-                        LEFT JOIN [PD].[dbo].[SOP30200] H
-                            ON H.SOPTYPE = L.SOPTYPE
-                            AND H.SOPNUMBE = L.SOPNUMBE
-
-                        LEFT JOIN [PD].[dbo].[RM00101] RM1
-                            ON RM1.CUSTNMBR = H.CUSTNMBR
-
-                        LEFT JOIN [PD].[dbo].[IV00101] I
-                            ON L.ITEMNMBR = I.ITEMNMBR
-
-                        LEFT JOIN [PD].[dbo].[IV40400] E
-                            ON E.ITMCLSCD = I.ITMCLSCD
-
-                        LEFT JOIN [PD].[dbo].[RM00102] RM2
-                            ON RM2.CUSTNMBR = H.CUSTNMBR
-                            AND RM2.ADRSCODE = H.PRSTADCD
-
-                        LEFT JOIN [PD].[dbo].[CS_SHIPT] SH
-                            ON SH. CUSTNMBR = RM1.CUSTNMBR
-
-                        LEFT JOIN [PD].[dbo].[CS_STATE] ST_STATE
-                            ON ST_STATE.STATE = H.STATE
-                            AND LTRIM(RTRIM(ST_STATE.CITY)) = ''
-
-                        LEFT JOIN [PD].[dbo].[CS_STATE] ST_CITY
-                            ON ST_CITY.STATE = H.STATE
-                            AND ST_CITY.CITY = H.CITY
-                            AND LTRIM(RTRIM(ST_CITY. CITY)) <> ''
-
-                        LEFT JOIN [PD].[dbo].[CS_NASTATE] ST_NASTATE
-                            ON ST_NASTATE.STATE = H.STATE
-
-                        LEFT JOIN  [PD].[dbo].[RM00301] SAL
-                        ON SAL.SLPRSNID = CASE ISNULL(SH.CS_Shipto, 1)
-                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                        END
-
-                     WHERE 
-                        CASE ISNULL(SH. CS_Shipto, 1)
-                                WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                            END IS NOT NULL AND
-                        CASE ISNULL(SH. CS_Shipto, 1)
-                                WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                            END!='' AND
-                        H.SOPTYPE  IN (3,4) AND 
-                        [VOIDSTTS]= 0 
-                        AND L.QUANTITY <> 0
-                        AND (
-                                (
-                                    ((SELECT linked FROM CSUSRep WHERE CS_User = @userid) = 0)
-                                    AND
-                                    (
-                                        ((SELECT COUNT(*) FROM CS_SRepList(@userid)) = 0) 
-                                        OR
-                                        (CASE ISNULL(SH.CS_Shipto, 1)
-                                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                                        END IN (SELECT CSSREP FROM CS_SRepList(@userid)))
-                                    )
-                                )
-                                OR
-                                (
-                                    ((SELECT linked FROM CSUSRep WHERE CS_User = @userid) = 1)
-                                    AND
-                                    (RM1.SLPRSNID = (SELECT CS_SalesRep FROM CSUSRep WHERE CS_User = @userid))
-                                )
-                            )
-                      AND (([DOCDATE]>= @StartDate AND [DOCDATE]< @EndDate) OR  (L.DEX_ROW_TS >= @StartDate AND L.DEX_ROW_TS < @EndDate))";
-
-            // Add conditional SLPRSNID filter
             string filters = syncDataSettings.GetFilters();
-            query += filters;
-            query += " ORDER BY H.DOCDATE," +
-            " CASE ISNULL(SH.CS_Shipto, 1)  WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID) END ASC, " +
-            "L.CMPNTSEQ  ASC, 	L.LNITMSEQ ASC , 	H.SOPNUMBE ASC " +
-            " OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
+            string query = BuildDataQuery(filters);
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
@@ -198,90 +245,11 @@ namespace SalesforceDynamicsGPIntegration
         }
         public int GetTotalPages()
         {
+            EnsureSchemaValidated();
+
             int count = 0;
-            string query = @"
-                    SELECT  
-                        COUNT(*) 
-                     FROM [PD].[dbo].[SOP30300] L
-                        LEFT JOIN [PD].[dbo].[SOP30200] H
-                            ON H.SOPTYPE = L.SOPTYPE
-                            AND H.SOPNUMBE = L.SOPNUMBE
-
-                        LEFT JOIN [PD].[dbo].[RM00101] RM1
-                            ON RM1.CUSTNMBR = H.CUSTNMBR
-
-                        LEFT JOIN [PD].[dbo].[IV00101] I
-                            ON L.ITEMNMBR = I.ITEMNMBR
-
-                        LEFT JOIN [PD].[dbo].[IV40400] E
-                            ON E.ITMCLSCD = I.ITMCLSCD
-
-                        LEFT JOIN [PD].[dbo].[RM00102] RM2
-                            ON RM2.CUSTNMBR = H.CUSTNMBR
-                            AND RM2.ADRSCODE = H.PRSTADCD
-
-                        LEFT JOIN [PD].[dbo].[CS_SHIPT] SH
-                            ON SH. CUSTNMBR = RM1.CUSTNMBR
-
-                        LEFT JOIN [PD].[dbo].[CS_STATE] ST_STATE
-                            ON ST_STATE.STATE = H.STATE
-                            AND LTRIM(RTRIM(ST_STATE.CITY)) = ''
-
-                        LEFT JOIN [PD].[dbo].[CS_STATE] ST_CITY
-                            ON ST_CITY.STATE = H.STATE
-                            AND ST_CITY.CITY = H.CITY
-                            AND LTRIM(RTRIM(ST_CITY. CITY)) <> ''
-
-                        LEFT JOIN [PD].[dbo].[CS_NASTATE] ST_NASTATE
-                            ON ST_NASTATE.STATE = H.STATE
-
-                        LEFT JOIN  [PD].[dbo].[RM00301] SAL
-                        ON SAL.SLPRSNID = CASE ISNULL(SH.CS_Shipto, 1)
-                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                        END
-                        
-                     WHERE 
-                        CASE ISNULL(SH. CS_Shipto, 1)
-                                WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                            END IS NOT NULL AND
-                        CASE ISNULL(SH. CS_Shipto, 1)
-                                WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                            END!='' AND
-                        H.SOPTYPE  IN (3,4) AND 
-                        [VOIDSTTS]= 0 
-                        AND L.QUANTITY <> 0
-                        AND (
-                                (
-                                    ((SELECT linked FROM CSUSRep WHERE CS_User = @userid) = 0)
-                                    AND
-                                    (
-                                        ((SELECT COUNT(*) FROM CS_SRepList(@userid)) = 0) 
-                                        OR
-                                        (CASE ISNULL(SH.CS_Shipto, 1)
-                                            WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID)
-                                            WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '')
-                                            ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID)
-                                        END IN (SELECT CSSREP FROM CS_SRepList(@userid)))
-                                    )
-                                )
-                                OR
-                                (
-                                    ((SELECT linked FROM CSUSRep WHERE CS_User = @userid) = 1)
-                                    AND
-                                    (RM1.SLPRSNID = (SELECT CS_SalesRep FROM CSUSRep WHERE CS_User = @userid))
-                                )
-                            )
-                     AND (([DOCDATE]>= @StartDate AND [DOCDATE]< @EndDate) OR  (L.DEX_ROW_TS >= @StartDate AND L.DEX_ROW_TS < @EndDate))";
-
-            // Add conditional SLPRSNID filter
             string filters = syncDataSettings.GetFilters();
-            query += filters;
+            string query = BuildCountQuery(filters);
 
             using (SqlConnection connection = new SqlConnection(connectionString))
             {

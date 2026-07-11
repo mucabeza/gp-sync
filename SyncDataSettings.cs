@@ -64,22 +64,25 @@ namespace SalesforceDynamicsGPIntegration
         }
         public string GetFilters()
         {
+            // These reference the output columns of the wrapped "Core" query (see
+            // GPDataBaseDataReader), not internal table aliases, so they stay valid
+            // no matter how the externalized query resolves those columns.
             string filters = " ";
             if (!string.IsNullOrEmpty(this.ItemClassType) && this.ItemClassType.ToUpper() != ALL_VALUES)
             {
-                filters += " AND LEFT(I.ITMCLSCD, 2) =  @ItemClassType";
+                filters += " AND LEFT(Core.ItemClassCode, 2) = @ItemClassType";
             }
             if (!string.IsNullOrEmpty(this.SalesPersonId) && this.SalesPersonId.ToUpper() != ALL_VALUES)
             {
-                filters += " AND (CASE ISNULL(SH. CS_Shipto, 1) WHEN 1 THEN ISNULL(RM2.SLPRSNID, RM1.SLPRSNID) WHEN 2 THEN COALESCE(ST_CITY.SLPRSNID, ST_STATE.SLPRSNID, RM2.SLPRSNID, '') ELSE COALESCE(ST_NASTATE.SLPRSNID, RM2.SLPRSNID) END) = @SalesPersonId";
+                filters += " AND Core.SalesPersonID = @SalesPersonId";
             }
             if (!string.IsNullOrEmpty(this.CustomerNumber) && this.CustomerNumber.ToUpper() != ALL_VALUES)
             {
-                filters += " AND H.CUSTNMBR = @CustomerNumber";
+                filters += " AND Core.CustomerNumber = @CustomerNumber";
             }
             if (!string.IsNullOrEmpty(this.ProductNumber) && this.ProductNumber.ToUpper() != ALL_VALUES)
             {
-                filters += " AND  L.ITEMNMBR = @ProductNumber";
+                filters += " AND Core.ItemNumber = @ProductNumber";
             }
 
             return filters;
