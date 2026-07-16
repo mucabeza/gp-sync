@@ -41,6 +41,7 @@ namespace SalesforceDynamicsGPIntegration
         public string shippingCity { get; set; }
         public string shippingState { get; set; }
         public string shippingZipCode { get; set; }
+        public string shippingAddress { get; set; }
 
     }
 }

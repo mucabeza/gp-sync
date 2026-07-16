@@ -1,36 +1,38 @@
 -- =========================================================================
--- GpSyncQuery.sql — Query base de sincronizacion GP -> Salesforce
+-- GpSyncQuery.sql — Base query for GP -> Salesforce synchronization
 -- =========================================================================
--- REGLAS PARA EDITAR ESTE ARCHIVO:
+-- RULES FOR EDITING THIS FILE:
 --
--- 1. Debe ser UNA sola sentencia SELECT (no INSERT/UPDATE/DELETE/DROP/etc.,
---    no varias sentencias separadas por ";").
+-- 1. It must be a SINGLE SELECT statement (no INSERT/UPDATE/DELETE/DROP/etc.,
+--    no multiple statements separated by ";").
 --
--- 2. Debe conservar EXACTAMENTE estos alias de columna en el SELECT
---    (la aplicacion los necesita para armar el registro que va a Salesforce):
+-- 2. It must keep EXACTLY these column aliases in the SELECT
+--    (the application needs them to build the record sent to Salesforce):
 --    DocumentDate, SalesPersonID, SalesPerson, SOPNumber, SOPType,
 --    ComponentSequence, LineItemSequence, CustomerNumber, CustomerName,
 --    BillingCity, ItemNumber, ItemDesc, ItemFamily, Qty, Amount,
---    ItemClassCode, ShippingState, ShippingCity, ShippingZipCode.
---    Se puede cambiar de que tablas/joins/alias salen esos valores, pero no
---    los nombres de columna de salida (los "AS ...").
+--    ItemClassCode, ShippingState, ShippingCity, ShippingAddress,
+--    ShippingZipCode, ShippingCountry.
+--    You may change which tables/joins/aliases those values come from, but not
+--    the output column names (the "AS ...").
 --
--- 3. Debe usar los parametros @userid, @StartDate, @EndDate (la app se los
---    pasa siempre).
+-- 3. It must use the parameters @userid, @StartDate, @EndDate (the app always
+--    passes them).
 --
--- 4. NO agregar aca: ORDER BY, OFFSET/FETCH, ni condiciones para filtrar
---    por vendedor/cliente/producto/clase de item. Esos 4 filtros opcionales
---    y el ordenamiento/paginado los agrega la aplicacion AUTOMATICAMENTE
---    por fuera de esta query, usando estas columnas de salida:
---      - ItemClassType   -> filtra por ItemClassCode
---      - SalesPersonId   -> filtra por SalesPersonID
---      - CustomerNumber  -> filtra por CustomerNumber
---      - ProductNumber   -> filtra por ItemNumber
---    Si se agregan aca tambien, se va a duplicar el filtro o romper la query.
+-- 4. DO NOT add here: ORDER BY, OFFSET/FETCH, or conditions to filter
+--    by salesperson/customer/product/item class. Those 4 optional filters
+--    and the ordering/paging are added by the application AUTOMATICALLY
+--    outside this query, using these output columns:
+--      - ItemClassType   -> filters by ItemClassCode
+--      - SalesPersonId   -> filters by SalesPersonID
+--      - CustomerNumber  -> filters by CustomerNumber
+--      - ProductNumber   -> filters by ItemNumber
+--    If they are added here too, the filter will be duplicated or the query
+--    will break.
 --
--- 5. La query final que se ejecuta (con los filtros ya agregados) queda
---    registrada en el log de la aplicacion (carpeta logs/) cada vez que
---    corre, por si hace falta ver exactamente que se ejecuto.
+-- 5. The final query that is executed (with the filters already added) is
+--    recorded in the application log (logs/ folder) every time it runs,
+--    in case you need to see exactly what was executed.
 -- =========================================================================
 
 SELECT DISTINCT

@@ -225,7 +225,8 @@ namespace SalesforceDynamicsGPIntegration
                                     billingCity = reader["BillingCity"].ToString(),
                                     shippingCity = reader["ShippingCity"].ToString(),
                                     shippingState = reader["ShippingState"].ToString(),
-                                    shippingZipCode = reader["ShippingZipCode"].ToString()
+                                    shippingZipCode = reader["ShippingZipCode"].ToString(),
+                                    shippingAddress = reader["ShippingAddress"].ToString()
 
 
                                 };
