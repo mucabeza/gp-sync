@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 
@@ -18,15 +19,34 @@ namespace SalesforceDynamicsGPIntegration
             "Salesforce:ClientSecret"
         };
 
-        static async Task Main(string[] args)
+        // Keeps two concurrent syncs (for example a manual run and the 01:10 scheduled run) from
+        // overlapping. "Global\" so it is shared across sessions - the task runs as SYSTEM.
+        private const string SINGLE_INSTANCE_MUTEX_NAME = @"Global\MaxSfGpSync";
+
+        static async Task<int> Main(string[] args)
         {
+            var options = RunOptions.Parse(args);
+
+            if (options.UnknownArguments.Count > 0)
+            {
+                Console.WriteLine($"Unknown argument(s): {string.Join(", ", options.UnknownArguments)}");
+                Console.WriteLine();
+                RunOptions.PrintUsage();
+                return 1;
+            }
+            if (options.Help)
+            {
+                RunOptions.PrintUsage();
+                return 0;
+            }
+
             string appSettingsPath = Path.Combine(AppContext.BaseDirectory, "appsettings.json");
               // --seal: encode plaintext secrets in appsettings.json and rewrite the file.
-            if (args.Length > 0 && args[0] == "--seal")
+            if (options.Seal)
             {
                 SealSecrets(appSettingsPath);
                 Console.WriteLine("Secrets sealed successfully. Run without --seal for normal operation.");
-                return;
+                return 0;
             }
             // Load configuration from appsettings.json
             // Load configuration from appsettings.json.
@@ -68,9 +88,75 @@ namespace SalesforceDynamicsGPIntegration
                 .Build();
 
             var logger = new Logger(config);
-            var salesforceService = new SynchronizationService(config, logger);
-            await salesforceService.StartSynchronizationAsync();
-            Console.WriteLine("\nFinished reading invoices.");
+            logger.LogInfo(options.Scheduled
+                ? $"Run mode: scheduled (skip settings already synced today: {options.SkipAlreadySucceeded})"
+                : "Run mode: manual (every active sync data setting is processed)");
+
+            Mutex singleInstance = null;
+            try
+            {
+                // Only scheduled runs stand down: a manual run must never be blocked.
+                if (options.Scheduled && !TryAcquireSingleInstanceLock(out singleInstance))
+                {
+                    logger.LogWarning("Another sync instance is already running - this scheduled run is skipped.");
+                    Console.WriteLine("Another sync instance is already running - this scheduled run is skipped.");
+                    return 0;
+                }
+
+                var state = SyncRunState.Load(config, logger);
+                var salesforceService = new SynchronizationService(config, logger, options, state);
+                var outcome = await salesforceService.StartSynchronizationAsync();
+
+                Console.WriteLine($"\nFinished reading invoices. {outcome.Summary}");
+                return outcome.ExitCode;
+            }
+            finally
+            {
+                if (singleInstance != null)
+                {
+                    try
+                    {
+                        singleInstance.ReleaseMutex();
+                    }
+                    catch (ApplicationException)
+                    {
+                        // Not owned (never acquired) - nothing to release.
+                    }
+                    singleInstance.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tries to take the single-instance lock. If the mutex cannot be created or inspected at all
+        /// (unexpected ACL, for example), the run proceeds: skipping a sync is worse than overlapping.
+        /// </summary>
+        private static bool TryAcquireSingleInstanceLock(out Mutex mutex)
+        {
+            mutex = null;
+            Mutex candidate = null;
+            try
+            {
+                candidate = new Mutex(false, SINGLE_INSTANCE_MUTEX_NAME);
+                if (!candidate.WaitOne(TimeSpan.Zero))
+                {
+                    candidate.Dispose();
+                    return false;
+                }
+                mutex = candidate;
+                return true;
+            }
+            catch (AbandonedMutexException)
+            {
+                // Previous holder died without releasing it: the wait succeeded and we own it now.
+                mutex = candidate;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Could not evaluate the single-instance lock ({ex.Message}) - continuing.");
+                return true;
+            }
         }
         private static void SealSecrets(string appSettingsPath)
         {

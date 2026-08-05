@@ -106,7 +106,7 @@
     <CustomAction
       Id="CreateStartupTask"
       Directory="System64Folder"
-      ExeCommand='powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command "Register-ScheduledTask -TaskName MaxSfGpSync -Action (New-ScheduledTaskAction -Execute &apos;[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe&apos;) -Trigger (New-ScheduledTaskTrigger -Daily -At &apos;00:10&apos;) -Principal (New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest) -Force"'
+      ExeCommand='powershell.exe -NonInteractive -NoProfile -ExecutionPolicy Bypass -Command "Register-ScheduledTask -TaskName MaxSfGpSync -Action (New-ScheduledTaskAction -Execute &apos;[INSTALLFOLDER]SalesforceDynamicsGpIntegration.exe&apos; -Argument &apos;--scheduled&apos;) -Trigger @((New-ScheduledTaskTrigger -Daily -At &apos;00:10&apos;), (New-ScheduledTaskTrigger -Daily -At &apos;01:10&apos;), (New-ScheduledTaskTrigger -Daily -At &apos;02:10&apos;)) -Principal (New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest) -Force"'
       Execute="deferred"
       Return="check"
       Impersonate="no" />

@@ -18,7 +18,8 @@ namespace SalesforceDynamicsGPIntegration
             "DocumentDate", "SalesPersonID", "SalesPerson", "SOPNumber", "SOPType",
             "ComponentSequence", "LineItemSequence", "CustomerNumber", "CustomerName",
             "BillingCity", "ItemNumber", "ItemDesc", "ItemFamily", "Qty", "Amount",
-            "ItemClassCode", "ShippingState", "ShippingCity", "ShippingZipCode"
+            "ItemClassCode", "ShippingState", "ShippingCity", "ShippingZipCode",
+            "ShippingAddress"
         };
 
         private static readonly Regex ForbiddenKeywordsRegex = new Regex(
@@ -37,7 +38,6 @@ namespace SalesforceDynamicsGPIntegration
         public GPDataBaseDataReader(IConfigurationRoot configurationBuilder, SyncDataSettings syncDataSettings, Logger logger)
         {
             this.connectionString = configurationBuilder.GetConnectionString("DynamicsGP");
-            Console.WriteLine(connectionString);
             this.syncDataSettings = syncDataSettings;
             this.Logger = logger;
             Logger.LogInfo("Filters:" + JsonSerializer.Serialize(syncDataSettings));
@@ -239,6 +239,9 @@ namespace SalesforceDynamicsGPIntegration
                     {
                         Console.WriteLine("Error: " + ex.Message);
                         Logger.LogError("Exception while reading data from GP database", ex);
+                        // Rethrow: sending a partial (or empty) page as if it were complete would let
+                        // the caller record the sync as successful and skip the retry runs.
+                        throw;
                     }
                     return gpDataSyncRequests;
                 }
@@ -275,9 +278,11 @@ namespace SalesforceDynamicsGPIntegration
                     }
                     catch (Exception ex)
                     {
-                        // Handle exceptions appropriately (log or throw)
                         Console.WriteLine("Error: " + ex.Message);
                         Logger.LogError("Exception while counting records from GP database", ex);
+                        // Rethrow: a failed count would otherwise look like "0 pages" and close the
+                        // Salesforce record with an empty payload, losing the window for good.
+                        throw;
                     }
                 }
             }

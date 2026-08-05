@@ -46,7 +46,8 @@ if ($RegisterStartup) {
 
     # Legacy/manual path. The MSI now creates/removes this scheduled task automatically.
     $currentUser = "$env:USERDOMAIN\$env:USERNAME"
-    $quotedExe = '"' + $exePath + '"'
+    # --scheduled: skip sync data settings that already synced successfully today.
+    $quotedExe = '"' + $exePath + '" --scheduled'
     $createTaskArgs = @(
         "/Create",
         "/TN", "\$TaskName",

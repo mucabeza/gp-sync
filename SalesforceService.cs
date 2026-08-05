@@ -217,19 +217,21 @@ namespace SalesforceDynamicsGPIntegration
 
                 if (response.IsSuccessStatusCode)
                 {
-                    this.Logger.LogInfo($"Successfully synced record to Salesforce");
-                    activeFilters = JsonSerializer.Deserialize<List<SyncDataSettings>>(responseContent);
+                    this.Logger.LogInfo($"Successfully retrieved the active sync data settings from Salesforce");
+                    activeFilters = JsonSerializer.Deserialize<List<SyncDataSettings>>(responseContent) ?? new List<SyncDataSettings>();
                 }
                 else
                 {
-                    this.Logger.LogError($"Failed to sync record. Status: {response.StatusCode}, Response: {responseContent}");
-                    activeFilters = new List<SyncDataSettings>();
+                    this.Logger.LogError($"Failed to retrieve the active sync data settings. Status: {response.StatusCode}, Response: {responseContent}");
+                    // Throw instead of returning an empty list: a failed fetch must not be mistaken
+                    // for "no active sync data settings", which would report the run as successful.
+                    throw new InvalidOperationException($"Failed to retrieve the active sync data settings from Salesforce. Status: {response.StatusCode}, Response: {responseContent}");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error syncing GP data: {ex.Message}");
-                activeFilters = new List<SyncDataSettings>();
+                Console.WriteLine($"Error retrieving the active sync data settings: {ex.Message}");
+                throw;
             }
 
             return activeFilters;

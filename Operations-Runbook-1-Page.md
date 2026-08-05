@@ -12,8 +12,39 @@ This runbook explains how to verify and operate the MAX Salesforce GP Sync servi
 ## Service Identity
 - Scheduled task name: `\MaxSfGpSync`
 - Run account: `NT AUTHORITY\SYSTEM`
-- Default schedule: Daily at `00:10`
+- Default schedule: Daily at `00:10`, `01:10` and `02:10`
+- Task action argument: `--scheduled`
 - Install folder: `C:\Program Files\SkyPlanner\GpSalesforceSync`
+
+### Why three runs a night
+Salesforce runs its match process at `04:00`, so the GP data has to be there before then. The task
+fires three times to leave room for retries if a run fails (Salesforce down, SQL unreachable,
+credentials expired). Because the task passes `--scheduled`, the runs at `01:10` and `02:10` only do
+work that is still **pending**:
+
+- A sync data setting that already synchronized **successfully today** is skipped.
+- A sync data setting that **failed** (or was never reached) is retried.
+- A sync data setting **created during the night** — for example by the monthly backfill Flow — is
+  picked up by the next run, not the next day.
+- The skip lasts for the local calendar day only; at `00:00` everything is eligible again.
+
+### Run modes
+| Invocation | Behavior |
+|---|---|
+| `SalesforceDynamicsGpIntegration.exe` (no arguments) | **Manual run: always synchronizes everything.** |
+| `... --scheduled` | Skips sync data settings that already synchronized successfully today. Used by the task. |
+| `... --scheduled --force` | Synchronizes everything, ignoring the saved state. |
+| `... --seal` | Encodes the secrets in `appsettings.json` and exits. |
+| `... --help` | Lists the options. |
+
+### Exit codes
+- `0` - the run completed: everything succeeded, was skipped, or there were no active sync data
+  settings. Also returned when the run stood down because another instance was already running.
+- `1` - at least one sync data setting failed, or Salesforce authentication / the settings fetch
+  failed. Whatever failed is **not** recorded as done, so the next run retries it.
+
+This is what Task Scheduler shows as **Last Run Result**, so a `1` there is a real failure worth
+looking into (before this change the app always reported `0`).
 
 ## Daily Health Check (5 minutes)
 1. Confirm scheduled task exists and is enabled.
@@ -22,16 +53,29 @@ This runbook explains how to verify and operate the MAX Salesforce GP Sync servi
 schtasks /Query /TN \MaxSfGpSync /V /FO LIST
 ```
 
-2. Confirm latest run result indicates success (or expected code).
+2. Confirm the latest run result is `0`. A `1` means something failed - see Exit codes above.
 3. Confirm today log file exists in `C:\Program Files\SkyPlanner\GpSalesforceSync\logs`.
 4. Open newest log and confirm:
 - Salesforce authentication succeeded
 - Sync settings were loaded
 - Pages processed, or `No active sync data settings found` (if expected)
-5. If needed, run task manually:
+- The closing summary line, e.g. `Synchronization process completed - 2 succeeded, 0 skipped, 0 failed`
+5. Expected pattern across the night: the `00:10` run processes pages, and the `01:10` / `02:10` runs
+   log `Skipping sync data setting (RecordId: ...) - already synced successfully today at ...`. If the
+   later runs are processing pages instead, the earlier run failed - check its errors.
+6. If needed, run the sync manually (**always synchronizes, skips nothing**):
 
 ```powershell
-schtasks /Run /TN \MaxSfGpSync
+cd "C:\Program Files\SkyPlanner\GpSalesforceSync"
+.\RunSyncNow.cmd
+```
+
+Do **not** use `schtasks /Run /TN \MaxSfGpSync` for a manual run: it starts the task with
+`--scheduled`, so it skips whatever already synchronized successfully today and may appear to do
+nothing. If you do want to start it through the task, force it:
+
+```powershell
+& "C:\Program Files\SkyPlanner\GpSalesforceSync\SalesforceDynamicsGpIntegration.exe" --scheduled --force
 ```
 
 ## App Log Review (Code-Based)
@@ -43,14 +87,21 @@ Log behavior implemented by the app:
 
 Minimum messages to confirm a healthy run:
 1. `Synchronization Service initialized`
-2. `Starting synchronization process...`
-3. `Attempting to connect to Salesforce...`
-4. `Successfully authenticated with Salesforce.`
-5. `Found N sync data settings`
-6. `Total pages to process: N`
-7. `Processing page X of Y`
-8. `Successfully sent to Salesforce Page Number: X`
-9. `Synchronization process completed`
+2. `Run mode: scheduled ...` or `Run mode: manual ...`
+3. `Starting synchronization process...`
+4. `Attempting to connect to Salesforce...`
+5. `Successfully authenticated with Salesforce.`
+6. `Found N sync data settings`
+7. `Total pages to process: N`
+8. `Processing page X of Y`
+9. `Successfully sent to Salesforce Page Number: X`
+10. `Sync data setting (RecordId: ...) completed successfully (N page(s))`
+11. `Synchronization process completed - N succeeded, M skipped, K failed`
+
+Expected messages on the second and third run of the night (not problems):
+1. `Skipping sync data setting (RecordId: ...) - already synced successfully today at ...`
+2. `Another sync instance is already running - this scheduled run is skipped.` (the previous run was
+   still going; it finishes on its own)
 
 Messages that indicate configuration or runtime issues:
 1. `Salesforce Authentication Failed: ...`
@@ -59,8 +110,57 @@ Messages that indicate configuration or runtime issues:
 4. `Salesforce Auth Error: ...`
 5. `Failed to sync page X to Salesforce. Message: ...`
 6. `Exception while syncing page X to Salesforce`
-7. `Exception processing sync data settings`
-8. `Fatal exception during synchronization`
+7. `Failed to prepare the GP query, skipping sync data setting (RecordId: ...)`
+8. `Sync data setting (RecordId: ...) finished with errors - it will be retried on the next run`
+9. `Exception processing sync data settings`
+10. `Fatal exception during synchronization`
+11. `Failed to save sync state to ... - the next run may repeat work already done`
+
+## Sync State (which settings already ran today)
+The app remembers what already synchronized so the `01:10` / `02:10` runs do not repeat work:
+
+- File: `C:\Program Files\SkyPlanner\GpSalesforceSync\state\sync-state.json`
+  (override with `Run:StateFilePath` / `MAXSFGP_RUN__STATEFILEPATH`)
+- One entry per sync data setting (`RecordId`), holding a fingerprint of its filters, the local date
+  and time of the last success, and the page count.
+- A setting is skipped **only** if the `RecordId`, the fingerprint **and** the local calendar date all
+  match. If its filters changed in Salesforce, it runs again the same day.
+- The fingerprint does **not** include `Start_Date__c` / `End_Date__c`: Salesforce advances the window
+  of a recurring filter itself as soon as it receives the closing payload
+  (`GPDataSyncService.updateFilter`), so the window we just synced is never the one the next GET
+  returns. An ad-hoc window (a backfill) arrives as a **new** filter record with its own `RecordId`,
+  so it is picked up normally.
+- Entries older than 30 days are pruned automatically.
+- A missing, unreadable or corrupt file never blocks the sync: it just means nothing gets skipped.
+- Only successes are recorded. A failed setting is never written, so it is retried.
+
+To force a full re-sync:
+
+```powershell
+cd "C:\Program Files\SkyPlanner\GpSalesforceSync"
+.\SalesforceDynamicsGpIntegration.exe --scheduled --force
+# or, equivalently, delete the state and let the next run rebuild it:
+Remove-Item .\state\sync-state.json
+```
+
+## Re-registering the Task on an Existing Install
+The MSI creates the three triggers automatically. On a machine installed **before** this change,
+either reinstall/upgrade the MSI or re-register the task once:
+
+```powershell
+Register-ScheduledTask -TaskName MaxSfGpSync `
+  -Action (New-ScheduledTaskAction -Execute 'C:\Program Files\SkyPlanner\GpSalesforceSync\SalesforceDynamicsGpIntegration.exe' -Argument '--scheduled') `
+  -Trigger @((New-ScheduledTaskTrigger -Daily -At '00:10'), (New-ScheduledTaskTrigger -Daily -At '01:10'), (New-ScheduledTaskTrigger -Daily -At '02:10')) `
+  -Principal (New-ScheduledTaskPrincipal -UserId SYSTEM -RunLevel Highest) -Force
+```
+
+Verify:
+
+```powershell
+schtasks /Query /TN \MaxSfGpSync /V /FO LIST
+```
+
+Three start times and an action ending in `--scheduled`.
 
 If no log file is created after running the task:
 1. Verify task action points to `SalesforceDynamicsGpIntegration.exe` in `C:\Program Files\SkyPlanner\GpSalesforceSync`
@@ -68,9 +168,10 @@ If no log file is created after running the task:
 3. Verify account permissions for the task run account (`SYSTEM`) to write in the install path
 
 ## Validation After Changes
-1. Re-run task manually.
+1. Re-run the sync manually with `.\RunSyncNow.cmd` (never skips), or
+   `.\SalesforceDynamicsGpIntegration.exe --scheduled --force` if you want to go through the task path.
 2. Confirm new execution appears in Task Scheduler history.
-3. Confirm fresh entries in today's log.
+3. Confirm fresh entries in today's log and the closing summary line.
 4. Validate data arrival in Salesforce for a known test case.
 
 ## Final Admin Sign-Off - Configure appsettings.json in max-sf-gp
@@ -129,17 +230,19 @@ cd "C:\Program Files\SkyPlanner\GpSalesforceSync"
 .\SalesforceDynamicsGpIntegration.exe --seal
 ```
 
-6. Run the scheduled task manually and verify logs:
+6. Run the sync manually and verify logs (this always synchronizes, it never skips):
 
 ```powershell
-schtasks /Run /TN \MaxSfGpSync
+cd "C:\Program Files\SkyPlanner\GpSalesforceSync"
+.\RunSyncNow.cmd
 ```
 
 Final sign-off checklist:
 1. All required `MAXSFGP_*` variables are set in Machine scope.
-2. Task run under `SYSTEM` succeeds.
+2. Task run under `SYSTEM` succeeds (Last Run Result `0`).
 3. Log confirms successful Salesforce auth and page processing.
 4. Test record reaches Salesforce.
+5. `state\sync-state.json` exists after a successful run.
 
 ## GP Sync Query (`GpSyncQuery.sql`)
 The SQL query used to pull sales data from Dynamics GP is **not** hardcoded in the
@@ -156,7 +259,8 @@ Editing rules (also documented in the file's header comment):
    `SalesPerson`, `SOPNumber`, `SOPType`, `ComponentSequence`, `LineItemSequence`,
    `CustomerNumber`, `CustomerName`, `BillingCity`, `ItemNumber`, `ItemDesc`,
    `ItemFamily`, `Qty`, `Amount`, `ItemClassCode`, `ShippingState`, `ShippingCity`,
-   `ShippingZipCode`. The underlying tables/joins/aliases can be changed freely.
+   `ShippingZipCode`, `ShippingAddress`. The underlying tables/joins/aliases can be
+   changed freely.
 3. Must keep the `@userid`, `@StartDate`, `@EndDate` parameters.
 4. Must **not** include `ORDER BY`, `OFFSET`/`FETCH`, or the optional filters (item
    class, sales rep, customer, product) — those are appended automatically by the
@@ -183,10 +287,22 @@ once per sync data setting via `Assembled GP sync query: ...` for troubleshootin
 3. Authentication failed:
 - Verify Salesforce URL, client credentials, username/password/token
 4. No data synced:
+- Check for `Skipping sync data setting (RecordId: ...)` lines - the work was already done earlier
+  today, which is expected on the `01:10` / `02:10` runs. Use `--force` to re-send anyway.
 - Verify active sync settings from Salesforce endpoint
 - Verify date/filter values
 5. SQL errors:
 - Verify connection string and DB permissions/network reachability
+- A SQL failure now fails the sync data setting (it is not recorded as done), so the next run retries
+  it. It no longer looks like an empty successful sync.
+6. Sync ran but nothing happened at all:
+- Check for `Another sync instance is already running` - a previous run was still in flight.
+7. `Stopping at page X of Y to keep the Salesforce window open for a retry`:
+- A page failed, so the run deliberately did **not** send the closing payload. Salesforce advances the
+  filter's window when it receives that payload, so sending it would have moved the window past rows
+  that never arrived. The window is still open and the next run resends it from page 1 (the upsert is
+  keyed on the GP line item identifier, so resending is safe). Fix the underlying error - if all three
+  runs of the night stop this way, the window stays open and nothing arrives.
 
 ## Escalation Trigger
 Escalate if any of these persist after one retry:

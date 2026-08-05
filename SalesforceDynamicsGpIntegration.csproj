@@ -19,6 +19,9 @@
     <None Update="GpSyncQuery.sql">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="RunSyncNow.cmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <PackageReference Include="NetCoreForce.Client" Version="4.0.0" />
   </ItemGroup>
 
